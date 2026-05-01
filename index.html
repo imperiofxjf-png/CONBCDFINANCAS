@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>CONBCD FINANÇAS | Gestão Financeira Multi-Igrejas</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Poppins', 'Roboto', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header-institucional {
+            background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
+            color: white;
+            padding: 25px 35px;
+            border-radius: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-institucional::before {
+            content: "💰";
+            position: absolute;
+            font-size: 180px;
+            right: -30px;
+            bottom: -50px;
+            opacity: 0.08;
+            pointer-events: none;
+        }
+
+        .logo-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .logo-area h1 {
+            font-size: 2.2rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .igreja-selector {
+            background: rgba(255,255,255,0.15);
+            padding: 10px 18px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .igreja-selector select {
+            padding: 8px 15px;
+            border-radius: 10px;
+            border: none;
+            background: white;
+            font-weight: 600;
+            color: #064e3b;
+            cursor: pointer;
+        }
+
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 22px;
+            margin-bottom: 30px;
+        }
+
+        .card-modern {
+            background: white;
+            border-radius: 20px;
+            padding: 22px;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-left: 5px solid;
+            cursor: pointer;
+        }
+
+        .card-receita { border-left-color: #10b981; }
+        .card-despesa { border-left-color: #ef4444; }
+        .card-saldo { border-left-color: #3b82f6; }
+
+        .card-modern h4 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            color: #6b7280;
+            margin-bottom: 12px;
+        }
+
+        .card-modern .valor-grande {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .tabs-system {
+            background: white;
+            border-radius: 20px;
+            padding: 5px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            background: transparent;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 15px;
+            transition: all 0.3s;
+            color: #4b5563;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #064e3b, #047857);
+            color: white;
+        }
+
+        .panel {
+            display: none;
+            background: white;
+            border-radius: 25px;
+            padding: 28px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            animation: fadeIn 0.4s ease;
+        }
+
+        .panel.active-panel {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 18px;
+            margin-bottom: 25px;
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 20px;
+        }
+
+        .input-field {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-field label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .input-field input, .input-field select {
+            padding: 10px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        button {
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #047857;
+            color: white;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-danger {
+            background: #dc2626;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f3f4f6;
+            padding: 14px 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-receita { background: #d1fae5; color: #065f46; }
+        .badge-despesa { background: #fee2e2; color: #991b1b; }
+
+        .charts-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin: 25px 0;
+        }
+
+        .chart-box {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 20px;
+        }
+
+        .categoria-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: #eef2ff;
+            padding: 8px 16px;
+            border-radius: 40px;
+            margin: 5px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 50px auto;
+            padding: 0;
+            border-radius: 25px;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #064e3b, #047857);
+            color: white;
+            padding: 20px 25px;
+            border-radius: 25px 25px 0 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        @media print {
+            .no-print { display: none; }
+            .panel.active-panel { display: block !important; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header-institucional no-print">
+        <div class="logo-area">
+            <h1><i class="fas fa-church"></i> CONBCD FINANÇAS</h1>
+            <div class="igreja-selector">
+                <label><i class="fas fa-building"></i> Igreja:</label>
+                <select id="seletorIgreja"></select>
+            </div>
+        </div>
+        <div class="subtitle"><i class="fas fa-chart-line"></i> Gestão Financeira Profissional | Múltiplas Igrejas</div>
+    </div>
+
+    <div class="dashboard-cards no-print">
+        <div class="card-modern card-receita">
+            <h4><i class="fas fa-arrow-up"></i> TOTAL RECEITAS</h4>
+            <div class="valor-grande" id="totalReceitas">R$ 0,00</div>
+        </div>
+        <div class="card-modern card-despesa">
+            <h4><i class="fas fa-arrow-down"></i> TOTAL DESPESAS</h4>
+            <div class="valor-grande" id="totalDespesas">R$ 0,00</div>
+        </div>
+        <div class="card-modern card-saldo">
+            <h4><i class="fas fa-balance-scale"></i> SALDO GERAL</h4>
+            <div class="valor-grande" id="saldoTotal">R$ 0,00</div>
+        </div>
+    </div>
+
+    <div class="tabs-system no-print">
+        <button class="tab-btn active" data-tab="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</button>
+        <button class="tab-btn" data-tab="lancamentos"><i class="fas fa-plus-circle"></i> Lançamentos</button>
+        <button class="tab-btn" data-tab="categorias"><i class="fas fa-tags"></i> Categorias</button>
+        <button class="tab-btn" data-tab="relatorios"><i class="fas fa-file-alt"></i> Relatórios</button>
+        <button class="tab-btn" data-tab="igrejas"><i class="fas fa-church"></i> Igrejas</button>
+        <button class="tab-btn" data-tab="backup"><i class="fas fa-database"></i> Backup</button>
+    </div>
+
+    <div id="dashboard" class="panel active-panel">
+        <h2><i class="fas fa-chart-pie"></i> Dashboard Financeiro</h2>
+        <div class="charts-row">
+            <div class="chart-box">
+                <h4>Comparativo Mensal</h4>
+                <canvas id="graficoMensal" height="250"></canvas>
+            </div>
+            <div class="chart-box">
+                <h4>Despesas por Categoria</h4>
+                <canvas id="graficoPizza" height="250"></canvas>
+            </div>
+        </div>
+        <div class="chart-box">
+            <h4>Últimas Transações</h4>
+            <div class="table-responsive">
+                <table id="ultimasTransacoes">
+                    <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="lancamentos" class="panel">
+        <h2><i class="fas fa-plus-circle"></i> Novo Lançamento</h2>
+        <div class="form-grid">
+            <div class="input-field"><label>Tipo</label><select id="tipoTransacao"><option value="receita">💰 Receita</option><option value="despesa">📉 Despesa</option></select></div>
+            <div class="input-field"><label>Categoria</label><select id="categoriaSelect"></select></div>
+            <div class="input-field"><label>Valor (R$)</label><input type="number" id="valorTransacao" step="0.01"></div>
+            <div class="input-field"><label>Data</label><input type="date" id="dataTransacao"></div>
+            <div class="input-field"><label>Descrição</label><input type="text" id="descTransacao" placeholder="Descrição..."></div>
+            <div class="input-field"><label>Forma Pagamento</label><select id="formaPagamento"><option>Dinheiro</option><option>PIX</option><option>Cartão</option><option>Transferência</option></select></div>
+            <div><button id="salvarTransacao"><i class="fas fa-save"></i> Salvar</button></div>
+        </div>
+        
+        <h3>Histórico Completo</h3>
+        <div class="table-responsive">
+            <table id="tabelaTransacoes">
+                <thead><tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th><th>Ações</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="categorias" class="panel">
+        <h2><i class="fas fa-tags"></i> Gerenciar Categorias</h2>
+        <div class="form-grid">
+            <div class="input-field"><label>Nova Categoria</label><input type="text" id="novaCategoriaNome" placeholder="Ex: Dízimos"></div>
+            <div class="input-field"><label>Tipo</label><select id="tipoCategoria"><option value="ambos">Ambos</option><option value="receita">Receita</option><option value="despesa">Despesa</option></select></div>
+            <div><button id="adicionarCategoria"><i class="fas fa-plus"></i> Adicionar</button></div>
+        </div>
+        <div id="listaCategorias"></div>
+    </div>
+
+    <div id="relatorios" class="panel">
+        <h2><i class="fas fa-chart-bar"></i> Relatórios Financeiros</h2>
+        <div class="form-grid">
+            <div class="input-field"><label>Mês</label><select id="relMes"><option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option><option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option><option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option></select></div>
+            <div class="input-field"><label>Ano</label><input type="number" id="relAno" value="2025"></div>
+            <div><button id="gerarRelatorio"><i class="fas fa-search"></i> Gerar</button></div>
+            <div><button id="exportarPDF" class="btn-secondary"><i class="fas fa-print"></i> Imprimir</button></div>
+        </div>
+        <div id="conteudoRelatorio" class="relatorio-box"></div>
+    </div>
+
+    <div id="igrejas" class="panel">
+        <h2><i class="fas fa-church"></i> Múltiplas Igrejas</h2>
+        <div class="form-grid">
+            <div class="input-field"><label>Nova Igreja</label><input type="text" id="novaIgrejaNome" placeholder="Nome da Igreja"></div>
+            <div class="input-field"><label>Endereço</label><input type="text" id="novaIgrejaEndereco" placeholder="Endereço"></div>
+            <div><button id="adicionarIgreja"><i class="fas fa-plus-circle"></i> Adicionar</button></div>
+        </div>
+        <div id="listaIgrejas"></div>
+    </div>
+
+    <div id="backup" class="panel">
+        <h2><i class="fas fa-shield-alt"></i> Backup e Restauração</h2>
+        <div class="form-grid">
+            <div><button id="fazerBackup" class="btn-success"><i class="fas fa-download"></i> Exportar Backup</button></div>
+            <div><button id="restaurarBackup" class="btn-secondary" onclick="document.getElementById('restoreFile').click()"><i class="fas fa-upload"></i> Restaurar Backup</button></div>
+            <input type="file" id="restoreFile" accept=".json" style="display:none;">
+        </div>
+    </div>
+</div>
+
+<script>
+    // Estrutura de dados multi-igrejas
+    let todasIgrejas = [];
+    let igrejaAtualId = null;
+    let transacoes = [];
+    let categorias = [];
+
+    // Carregar dados do localStorage
+    function carregarDados() {
+        const saved = localStorage.getItem("conbcd_financas_igrejas");
+        const savedAtual = localStorage.getItem("conbcd_financas_atual");
+        
+        if(saved) {
+            todasIgrejas = JSON.parse(saved);
+        } else {
+            todasIgrejas = [{
+                id: Date.now(),
+                nome: "Igreja Batista Casa de Deus",
+                endereco: "",
+                transacoes: [],
+                categorias: [
+                    { nome: "Dízimos", tipo: "receita" },
+                    { nome: "Ofertas", tipo: "receita" },
+                    { nome: "Eventos", tipo: "ambos" },
+                    { nome: "Manutenção", tipo: "despesa" },
+                    { nome: "Salários", tipo: "despesa" },
+                    { nome: "Material", tipo: "despesa" },
+                    { nome: "Missões", tipo: "receita" }
+                ]
+            }];
+        }
+        
+        if(savedAtual) {
+            igrejaAtualId = parseInt(savedAtual);
+            if(!todasIgrejas.find(i => i.id === igrejaAtualId)) {
+                igrejaAtualId = todasIgrejas[0].id;
+            }
+        } else {
+            igrejaAtualId = todasIgrejas[0].id;
+        }
+        
+        carregarIgrejaAtual();
+        atualizarSeletor();
+        atualizarInterface();
+    }
+    
+    function carregarIgrejaAtual() {
+        const igreja = todasIgrejas.find(i => i.id === igrejaAtualId);
+        if(igreja) {
+            transacoes = igreja.transacoes || [];
+            categorias = igreja.categorias || [];
+            if(!categorias.length) categorias = [{ nome: "Dízimos", tipo: "receita" }];
+        }
+    }
+    
+    function salvarIgrejaAtual() {
+        const index = todasIgrejas.findIndex(i => i.id === igrejaAtualId);
+        if(index !== -1) {
+            todasIgrejas[index].transacoes = transacoes;
+            todasIgrejas[index].categorias = categorias;
+        }
+        localStorage.setItem("conbcd_financas_igrejas", JSON.stringify(todasIgrejas));
+        localStorage.setItem("conbcd_financas_atual", igrejaAtualId);
+    }
+    
+    function atualizarSeletor() {
+        const select = document.getElementById('seletorIgreja');
+        select.innerHTML = '';
+        todasIgrejas.forEach(igreja => {
+            const option = document.createElement('option');
+            option.value = igreja.id;
+            option.textContent = `${igreja.nome} ${igreja.id === igrejaAtualId ? '✓' : ''}`;
+            if(igreja.id === igrejaAtualId) option.selected = true;
+            select.appendChild(option);
+        });
+    }
+    
+    function trocarIgreja(id) {
+        if(id == igrejaAtualId) return;
+        salvarIgrejaAtual();
+        igrejaAtualId = parseInt(id);
+        carregarIgrejaAtual();
+        atualizarInterface();
+        atualizarSeletor();
+    }
+    
+    function adicionarIgreja(nome, endereco) {
+        if(!nome.trim()) return alert('Informe o nome da igreja');
+        todasIgrejas.push({
+            id: Date.now(),
+            nome: nome.trim(),
+            endereco: endereco || "",
+            transacoes: [],
+            categorias: [{ nome: "Dízimos", tipo: "receita" }, { nome: "Ofertas", tipo: "receita" }]
+        });
+        salvarIgrejaAtual();
+        atualizarSeletor();
+        renderizarListaIgrejas();
+        alert(`✅ Igreja "${nome}" adicionada!`);
+    }
+    
+    function excluirIgreja(id) {
+        if(todasIgrejas.length <= 1) return alert('❌ Não é possível excluir a única igreja.');
+        if(confirm('Excluir esta igreja e todos os seus dados financeiros?')) {
+            todasIgrejas = todasIgrejas.filter(i => i.id !== id);
+            if(igrejaAtualId === id) {
+                igrejaAtualId = todasIgrejas[0].id;
+                carregarIgrejaAtual();
+            }
+            salvarIgrejaAtual();
+            atualizarSeletor();
+            renderizarListaIgrejas();
+            atualizarInterface();
+            alert('✅ Igreja excluída!');
+        }
+    }
+    
+    function renderizarListaIgrejas() {
+        const container = document.getElementById('listaIgrejas');
+        container.innerHTML = '<h4>📌 Igrejas Cadastradas</h4>';
+        todasIgrejas.forEach(igreja => {
+            const div = document.createElement('div');
+            div.className = 'categoria-item';
+            div.innerHTML = `
+                <span><strong>${igreja.nome}</strong> ${igreja.id === igrejaAtualId ? '(ATUAL)' : ''}<br>
+                <small>${igreja.endereco || 'Sem endereço'} | Transações: ${(igreja.transacoes || []).length}</small></span>
+                <button onclick="excluirIgreja(${igreja.id})" style="background:#ef4444;">✖️</button>
+            `;
+            container.appendChild(div);
+        });
+    }
+    
+    function atualizarInterface() {
+        atualizarCards();
+        atualizarSelectCategorias();
+        renderizarTabela();
+        renderizarCategorias();
+        renderizarListaIgrejas();
+        renderizarGraficos();
+        atualizarUltimasTransacoes();
+    }
+    
+    function atualizarCards() {
+        let totalRec = 0, totalDesp = 0;
+        transacoes.forEach(t => {
+            if(t.tipo === 'receita') totalRec += t.valor;
+            else totalDesp += t.valor;
+        });
+        document.getElementById('totalReceitas').innerHTML = `R$ ${totalRec.toFixed(2)}`;
+        document.getElementById('totalDespesas').innerHTML = `R$ ${totalDesp.toFixed(2)}`;
+        document.getElementById('saldoTotal').innerHTML = `R$ ${(totalRec - totalDesp).toFixed(2)}`;
+    }
+    
+    function atualizarSelectCategorias() {
+        const select = document.getElementById('categoriaSelect');
+        select.innerHTML = '';
+        categorias.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat.nome;
+            opt.textContent = `${cat.nome} (${cat.tipo})`;
+            select.appendChild(opt);
+        });
+    }
+    
+    function renderizarTabela() {
+        const tbody = document.querySelector('#tabelaTransacoes tbody');
+        if(!tbody) return;
+        tbody.innerHTML = '';
+        [...transacoes].reverse().forEach(t => {
+            const row = tbody.insertRow();
+            row.insertCell(0).textContent = t.data;
+            row.insertCell(1).innerHTML = `<span class="badge ${t.tipo === 'receita' ? 'badge-receita' : 'badge-despesa'}">${t.tipo === 'receita' ? 'Receita' : 'Despesa'}</span>`;
+            row.insertCell(2).textContent = t.categoria;
+            row.insertCell(3).textContent = t.descricao || '-';
+            row.insertCell(4).textContent = `R$ ${t.valor.toFixed(2)}`;
+            const acoes = row.insertCell(5);
+            const btnDel = document.createElement('button');
+            btnDel.innerHTML = '<i class="fas fa-trash"></i>';
+            btnDel.style.background = '#dc2626';
+            btnDel.onclick = () => {
+                if(confirm('Excluir transação?')) {
+                    transacoes = transacoes.filter(x => x.id !== t.id);
+                    salvarIgrejaAtual();
+                    atualizarInterface();
+                }
+            };
+            acoes.appendChild(btnDel);
+        });
+    }
+    
+    function renderizarCategorias() {
+        const container = document.getElementById('listaCategorias');
+        container.innerHTML = '<h4>📌 Categorias Disponíveis</h4>';
+        categorias.forEach((cat, idx) => {
+            const div = document.createElement('div');
+            div.className = 'categoria-item';
+            div.innerHTML = `<span><strong>${cat.nome}</strong> (${cat.tipo})</span>
+                           <button onclick="excluirCategoria(${idx})" style="background:#ef4444;">✖️</button>`;
+            container.appendChild(div);
+        });
+    }
+    
+    function excluirCategoria(idx) {
+        const catNome = categorias[idx].nome;
+        if(transacoes.some(t => t.categoria === catNome)) {
+            alert(`❌ Não é possível excluir "${catNome}" pois há transações vinculadas.`);
+        } else {
+            categorias.splice(idx, 1);
+            salvarIgrejaAtual();
+            atualizarInterface();
+        }
+    }
+    
+    let graficoBarra, graficoPizza;
+    function renderizarGraficos() {
+        const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+        let receitas = new Array(12).fill(0);
+        let despesas = new Array(12).fill(0);
+        
+        transacoes.forEach(t => {
+            const mes = new Date(t.data).getMonth();
+            if(t.tipo === 'receita') receitas[mes] += t.valor;
+            else despesas[mes] += t.valor;
+        });
+        
+        const ctxBar = document.getElementById('graficoMensal')?.getContext('2d');
+        if(ctxBar) {
+            if(graficoBarra) graficoBarra.destroy();
+            graficoBarra = new Chart(ctxBar, {
+                type: 'bar',
+                data: { labels: meses, datasets: [
+                    { label: 'Receitas', data: receitas, backgroundColor: '#10b981' },
+                    { label: 'Despesas', data: despesas, backgroundColor: '#ef4444' }
+                ]}
+            });
+        }
+        
+        let despPorCat = {};
+        transacoes.filter(t => t.tipo === 'despesa').forEach(t => {
+            despPorCat[t.categoria] = (despPorCat[t.categoria] || 0) + t.valor;
+        });
+        
+        const ctxPizza = document.getElementById('graficoPizza')?.getContext('2d');
+        if(ctxPizza) {
+            if(graficoPizza) graficoPizza.destroy();
+            graficoPizza = new Chart(ctxPizza, {
+                type: 'pie',
+                data: { labels: Object.keys(despPorCat), datasets: [{ data: Object.values(despPorCat), backgroundColor: ['#f59e0b','#ef4444','#8b5cf6','#10b981'] }] }
+            });
+        }
+    }
+    
+    function atualizarUltimasTransacoes() {
+        const tbody = document.querySelector('#ultimasTransacoes tbody');
+        if(tbody) {
+            tbody.innerHTML = '';
+            transacoes.slice(-5).reverse().forEach(t => {
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = t.data;
+                row.insertCell(1).textContent = t.descricao || t.categoria;
+                row.insertCell(2).textContent = t.categoria;
+                row.insertCell(3).innerHTML = `<strong>R$ ${t.valor.toFixed(2)}</strong>`;
+            });
+        }
+    }
+    
+    function gerarRelatorio(mes, ano) {
+        const filtradas = transacoes.filter(t => {
+            const d = new Date(t.data);
+            return d.getMonth() + 1 === mes && d.getFullYear() === ano;
+        });
+        
+        let rec = 0, desp = 0;
+        let html = `<h4>📊 Relatório - ${mes}/${ano}</h4>
+                   <table border="1" cellpadding="8" width="100%">
+                   <tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th></tr>`;
+        
+        filtradas.forEach(t => {
+            html += `<tr><td>${t.data}</td><td>${t.tipo}</td><td>${t.categoria}</td><td>${t.descricao || '-'}</td><td>R$ ${t.valor.toFixed(2)}</td></tr>`;
+            if(t.tipo === 'receita') rec += t.valor;
+            else desp += t.valor;
+        });
+        
+        html += `<tr style="font-weight:bold;"><td colspan="4">TOTAIS</td>
+                <td>Receitas: R$ ${rec.toFixed(2)}<br>Despesas: R$ ${desp.toFixed(2)}<br>Saldo: R$ ${(rec-desp).toFixed(2)}</td></tr>
+                </table>`;
+        
+        document.getElementById('conteudoRelatorio').innerHTML = html;
+    }
+    
+    function exportarBackup() {
+        const dump = { todasIgrejas, igrejaAtualId, versao: "CONBCD-FINANCAS-v1.0", data: new Date() };
+        const blob = new Blob([JSON.stringify(dump, null, 2)], {type: 'application/json'});
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `CONBCD_financas_backup_${new Date().toISOString().slice(0,19)}.json`;
+        link.click();
+    }
+    
+    function restaurarBackup(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = JSON.parse(e.target.result);
+                if(data.todasIgrejas && data.igrejaAtualId) {
+                    todasIgrejas = data.todasIgrejas;
+                    igrejaAtualId = data.igrejaAtualId;
+                    carregarIgrejaAtual();
+                    salvarIgrejaAtual();
+                    atualizarSeletor();
+                    atualizarInterface();
+                    alert('✅ Backup restaurado com sucesso!');
+                } else throw new Error();
+            } catch(e) {
+                alert('❌ Arquivo inválido');
+            }
+        };
+        reader.readAsText(file);
+    }
+    
+    // Eventos
+    document.getElementById('seletorIgreja')?.addEventListener('change', (e) => trocarIgreja(e.target.value));
+    
+    document.getElementById('salvarTransacao')?.addEventListener('click', () => {
+        const valor = parseFloat(document.getElementById('valorTransacao').value);
+        const data = document.getElementById('dataTransacao').value;
+        if(isNaN(valor) || !data) return alert('Preencha valor e data');
+        
+        transacoes.push({
+            id: Date.now(),
+            tipo: document.getElementById('tipoTransacao').value,
+            categoria: document.getElementById('categoriaSelect').value,
+            valor, data,
+            descricao: document.getElementById('descTransacao').value,
+            formaPagamento: document.getElementById('formaPagamento').value
+        });
+        
+        salvarIgrejaAtual();
+        atualizarInterface();
+        document.getElementById('valorTransacao').value = '';
+        document.getElementById('descTransacao').value = '';
+        alert('✅ Transação salva!');
+    });
+    
+    document.getElementById('adicionarCategoria')?.addEventListener('click', () => {
+        const nome = document.getElementById('novaCategoriaNome').value.trim();
+        const tipo = document.getElementById('tipoCategoria').value;
+        if(nome && !categorias.find(c => c.nome === nome)) {
+            categorias.push({ nome, tipo });
+            salvarIgrejaAtual();
+            atualizarInterface();
+            document.getElementById('novaCategoriaNome').value = '';
+        } else alert('Categoria já existe ou inválida');
+    });
+    
+    document.getElementById('adicionarIgreja')?.addEventListener('click', () => {
+        const nome = document.getElementById('novaIgrejaNome').value.trim();
+        const endereco = document.getElementById('novaIgrejaEndereco').value;
+        adicionarIgreja(nome, endereco);
+        document.getElementById('novaIgrejaNome').value = '';
+        document.getElementById('novaIgrejaEndereco').value = '';
+    });
+    
+    document.getElementById('gerarRelatorio')?.addEventListener('click', () => {
+        const mes = parseInt(document.getElementById('relMes').value);
+        const ano = parseInt(document.getElementById('relAno').value);
+        gerarRelatorio(mes, ano);
+    });
+    
+    document.getElementById('exportarPDF')?.addEventListener('click', () => window.print());
+    document.getElementById('fazerBackup')?.addEventListener('click', exportarBackup);
+    document.getElementById('restoreFile')?.addEventListener('change', (e) => {
+        if(e.target.files[0]) restaurarBackup(e.target.files[0]);
+    });
+    
+    // Abas
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active-panel'));
+            document.getElementById(btn.dataset.tab).classList.add('active-panel');
+        });
+    });
+    
+    carregarDados();
+</script>
+</body>
+</html>

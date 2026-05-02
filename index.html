@@ -12,6 +12,19 @@
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="manifest" href="data:application/manifest+json,{
+        \"name\":\"CONBCD Finanças\",
+        \"short_name\":\"CONBCD\",
+        \"start_url\":\".\",
+        \"display\":\"standalone\",
+        \"background_color\":\"#064e3b\",
+        \"theme_color\":\"#064e3b\",
+        \"icons\":[{
+            \"src\":\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23064e3b'/%3E%3Ctext x='50' y='67' font-size='50' text-anchor='middle' fill='white'%3E💰%3C/text%3E%3C/svg%3E\",
+            \"sizes\":\"any\",
+            \"type\":\"image/svg+xml\"
+        }]
+    }">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
@@ -511,7 +524,6 @@
             <div class="input-field"><label>Ano</label><input type="number" id="relAno" value="2025"></div>
             <div class="btn-group">
                 <button id="gerarRelatorio"><i class="fas fa-search"></i> Gerar</button>
-                <button id="exportarPDF" class="btn-secondary"><i class="fas fa-print"></i> Imprimir</button>
                 <button id="btnRelatorioAvancado" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);"><i class="fas fa-chart-line"></i> Relatório Avançado</button>
             </div>
         </div>
@@ -593,7 +605,6 @@
         try {
             const { jsPDF } = window.jspdf;
             
-            // Mostrar loading
             const loadingDiv = document.createElement('div');
             loadingDiv.style.cssText = `
                 position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
@@ -604,7 +615,6 @@
             loadingDiv.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Gerando PDF, aguarde...';
             document.body.appendChild(loadingDiv);
             
-            // Capturar o elemento como canvas
             const canvas = await html2canvas(elemento, {
                 scale: 2,
                 backgroundColor: '#ffffff',
@@ -613,8 +623,8 @@
             });
             
             const imgData = canvas.toDataURL('image/png');
-            const imgWidth = 210; // A4 largura em mm
-            const pageHeight = 297; // A4 altura em mm
+            const imgWidth = 210;
+            const pageHeight = 297;
             const imgHeight = (canvas.height * imgWidth) / canvas.width;
             
             const pdf = new jsPDF('p', 'mm', 'a4');
@@ -622,7 +632,6 @@
             
             pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
             
-            // Adicionar nova página se necessário
             let heightLeft = imgHeight - pageHeight;
             while (heightLeft > 0) {
                 position = heightLeft - imgHeight;
@@ -632,15 +641,12 @@
             }
             
             pdf.save(nomeArquivo);
-            
-            // Remover loading
             loadingDiv.remove();
-            
             return true;
         } catch (error) {
             console.error('Erro ao gerar PDF:', error);
             loadingDiv?.remove();
-            alert('❌ Erro ao gerar PDF. Tente usar a opção "Imprimir" e salvar como PDF.');
+            alert('❌ Erro ao gerar PDF. Tente usar a opção "Imprimir" do navegador.');
             return false;
         }
     }
@@ -650,7 +656,6 @@
     // ============================================
     
     function abrirModalComRelatorio(conteudoHTML, titulo) {
-        // Verificar se já existe um modal aberto
         const modalExistente = document.querySelector('.modal-overlay');
         if (modalExistente) {
             modalExistente.remove();
@@ -683,7 +688,6 @@
         
         document.body.appendChild(modalOverlay);
         
-        // Eventos dos botões
         const savePdfBtn = modalOverlay.querySelector('#savePdfBtn');
         const printBtn = modalOverlay.querySelector('#printModalBtn');
         const closeBtn = modalOverlay.querySelector('#closeModalBtn');
@@ -720,7 +724,6 @@
         
         closeBtn.addEventListener('click', () => closeModal(modalOverlay));
         
-        // Fechar ao clicar fora do modal
         modalOverlay.addEventListener('click', (e) => {
             if (e.target === modalOverlay) {
                 closeModal(modalOverlay);
@@ -731,7 +734,7 @@
     }
 
     // ============================================
-    // RELATÓRIO AVANÇADO CORRIGIDO COM MODAL
+    // RELATÓRIO AVANÇADO
     // ============================================
     
     async function gerarRelatorioAvancado() {
@@ -907,7 +910,7 @@
     }
 
     // ============================================
-    // FUNÇÃO PARA GERAR RELATÓRIO SIMPLES COM PDF
+    // RELATÓRIO SIMPLES
     // ============================================
     
     function gerarRelatorio(mes, ano) {
@@ -933,7 +936,7 @@
                             <th style="padding:10px;">Categoria</th>
                             <th style="padding:10px;">Descrição</th>
                             <th style="padding:10px;">Valor</th>
-                        </tr>
+                         </tr>
                     </thead>
                     <tbody>
         `;
@@ -975,8 +978,8 @@
             </div>
         `;
         
-        const mesNome = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][mes-1];
-        abrirModalComRelatorio(html, `Relatório ${mesNome}/${ano}`);
+        const mesesNomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        abrirModalComRelatorio(html, `Relatório ${mesesNomes[mes-1]}/${ano}`);
     }
 
     // ============================================
@@ -1324,7 +1327,6 @@
         gerarRelatorio(mes, ano);
     });
     
-    document.getElementById('exportarPDF')?.addEventListener('click', () => window.print());
     document.getElementById('fazerBackup')?.addEventListener('click', exportarBackup);
     document.getElementById('restoreFile')?.addEventListener('change', (e) => {
         if(e.target.files[0]) restaurarBackup(e.target.files[0]);
@@ -1346,4 +1348,4 @@
     carregarDados();
 </script>
 </body>
-            </html>
+                                                                    </html>

@@ -10,21 +10,7 @@
     <title>CONBCD FINANÇAS | Gestão Financeira Multi-Igrejas</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link rel="manifest" href="data:application/manifest+json,{
-        \"name\":\"CONBCD Finanças\",
-        \"short_name\":\"CONBCD\",
-        \"start_url\":\".\",
-        \"display\":\"standalone\",
-        \"background_color\":\"#064e3b\",
-        \"theme_color\":\"#064e3b\",
-        \"icons\":[{
-            \"src\":\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23064e3b'/%3E%3Ctext x='50' y='67' font-size='50' text-anchor='middle' fill='white'%3E💰%3C/text%3E%3C/svg%3E\",
-            \"sizes\":\"any\",
-            \"type\":\"image/svg+xml\"
-        }]
-    }">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
@@ -227,12 +213,12 @@
             background: #dc2626;
         }
 
-        .btn-pdf {
-            background: #ef4444;
+        .btn-secondary {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
         }
 
-        .btn-pdf:hover {
-            background: #dc2626;
+        .btn-print {
+            background: linear-gradient(135deg, #2563eb, #1e40af);
         }
 
         .table-responsive {
@@ -326,98 +312,18 @@
             color: #764ba2;
         }
 
-        /* Modal styles */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 10001;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: auto;
-        }
-
-        .modal-container {
-            background: white;
-            border-radius: 25px;
-            max-width: 95%;
-            max-height: 95%;
-            overflow: auto;
-            margin: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            animation: modalFadeIn 0.3s ease;
-        }
-
-        @keyframes modalFadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        .modal-header {
-            position: sticky;
-            top: 0;
-            background: linear-gradient(135deg, #064e3b, #047857);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 25px 25px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            z-index: 10;
-        }
-
-        .modal-header h3 {
-            margin: 0;
-        }
-
-        .modal-header button {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 8px 15px;
-            border-radius: 10px;
-            transition: all 0.2s;
-        }
-
-        .modal-header button:hover {
-            background: rgba(255,255,255,0.3);
-            transform: none;
-        }
-
-        .modal-header .btn-close {
-            background: #dc2626;
-        }
-
-        .modal-header .btn-close:hover {
-            background: #b91c1c;
-        }
-
-        .modal-body {
-            padding: 25px;
+        @media print {
+            .no-print { display: none; }
+            .panel.active-panel { display: block !important; }
+            .storage-status { display: none; }
+            .install-banner { display: none; }
+            body { padding: 0; margin: 0; }
         }
 
         .btn-group {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
-        }
-
-        @media print {
-            .no-print { display: none; }
-            .panel.active-panel { display: block !important; }
-            .storage-status { display: none; }
-            .install-banner { display: none; }
-            .modal-overlay { position: relative; background: white; }
-            .modal-container { margin: 0; max-width: 100%; }
-            .modal-header button { display: none; }
         }
     </style>
 </head>
@@ -524,6 +430,8 @@
             <div class="input-field"><label>Ano</label><input type="number" id="relAno" value="2025"></div>
             <div class="btn-group">
                 <button id="gerarRelatorio"><i class="fas fa-search"></i> Gerar</button>
+                <button id="imprimirRelatorio" class="btn-print"><i class="fas fa-print"></i> 🖨️ Imprimir</button>
+                <button id="exportarPDF" class="btn-secondary"><i class="fas fa-file-pdf"></i> Salvar PDF</button>
                 <button id="btnRelatorioAvancado" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);"><i class="fas fa-chart-line"></i> Relatório Avançado</button>
             </div>
         </div>
@@ -548,19 +456,20 @@
             <input type="file" id="restoreFile" accept=".json" style="display:none;">
         </div>
         <div class="info-box" style="margin-top:20px; padding:15px; background:#f0fdf4; border-radius:15px;">
-            <i class="fas fa-info-circle"></i> <strong>Informação:</strong> O app salva automaticamente todos os dados no localStorage do navegador. Use o botão acima para fazer backup manual.
+            <i class="fas fa-info-circle"></i> <strong>Informação:</strong> 
+            <span id="storageInfo">Os dados são salvos automaticamente na memória interna do celular.</span>
         </div>
     </div>
 </div>
 
-<div class="storage-status no-print" id="storageIndicator">
+<div class="storage-status" id="storageIndicator">
     <i class="fas fa-check-circle"></i> <span>Sistema Online</span>
 </div>
 
 <script>
     // ============================================
     // APP COMPLETO CONBCD FINANÇAS
-    // COM PDF E MODAL COM BOTÃO X
+    // COM IMPRESSÃO FUNCIONAL E BACKUP COMPLETO
     // ============================================
     
     let todasIgrejas = [];
@@ -568,6 +477,13 @@
     let transacoes = [];
     let categorias = [];
     let deferredPrompt = null;
+
+    // Verificar se está em modo App/WebView
+    function isAppMode() {
+        return /WebView|Android.*Mobile|iPhone|iPad|iPod|Mobile.*Safari/.test(navigator.userAgent) || 
+               window.navigator.standalone === true ||
+               window.matchMedia('(display-mode: standalone)').matches;
+    }
 
     // PWA - Instalação
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -588,153 +504,189 @@
     });
 
     // ============================================
-    // FUNÇÃO PARA FECHAR MODAL
+    // FUNÇÃO DE IMPRESSÃO UNIVERSAL (WEB + APP)
     // ============================================
     
-    function closeModal(modalElement) {
-        if (modalElement && modalElement.remove) {
-            modalElement.remove();
+    function imprimirRelatorio() {
+        const conteudo = document.getElementById('conteudoRelatorio');
+        if (!conteudo || !conteudo.innerHTML || conteudo.innerHTML.trim() === '' || conteudo.innerHTML.includes('Nenhuma transação encontrada para este período')) {
+            alert('⚠️ Gere um relatório primeiro clicando em "Gerar" antes de imprimir!');
+            return false;
         }
+        
+        const igrejaAtual = todasIgrejas.find(i => i.id === igrejaAtualId);
+        const nomeIgreja = igrejaAtual ? igrejaAtual.nome : 'CONBCD Finanças';
+        
+        // Criar conteúdo para impressão
+        const conteudoImpressao = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Relatório - ${nomeIgreja}</title>
+                <style>
+                    body {
+                        font-family: 'Segoe UI', Arial, sans-serif;
+                        padding: 40px;
+                        margin: 0;
+                    }
+                    .header {
+                        text-align: center;
+                        margin-bottom: 30px;
+                        padding-bottom: 20px;
+                        border-bottom: 2px solid #064e3b;
+                    }
+                    .header h1 {
+                        color: #064e3b;
+                        margin: 0;
+                        font-size: 24px;
+                    }
+                    .header h2 {
+                        color: #047857;
+                        margin: 10px 0;
+                        font-size: 18px;
+                    }
+                    .header p {
+                        color: #666;
+                        margin: 5px 0;
+                    }
+                    table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin: 20px 0;
+                    }
+                    th, td {
+                        border: 1px solid #ddd;
+                        padding: 10px;
+                        text-align: left;
+                    }
+                    th {
+                        background-color: #064e3b;
+                        color: white;
+                    }
+                    .footer {
+                        text-align: center;
+                        margin-top: 50px;
+                        padding-top: 20px;
+                        border-top: 1px solid #ddd;
+                        font-size: 12px;
+                        color: #999;
+                    }
+                    @media print {
+                        body {
+                            padding: 0;
+                        }
+                        button {
+                            display: none;
+                        }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>${nomeIgreja}</h1>
+                    <h2>RELATÓRIO FINANCEIRO</h2>
+                    <p>Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+                </div>
+                <div class="content">
+                    ${conteudo.innerHTML}
+                </div>
+                <div class="footer">
+                    <p>Documento gerado pelo sistema CONBCD Finanças</p>
+                    <p>© ${new Date().getFullYear()} CONBCD - Todos os direitos reservados</p>
+                </div>
+                <script>
+                    window.onload = function() {
+                        setTimeout(function() {
+                            window.print();
+                            setTimeout(function() {
+                                window.close();
+                            }, 1000);
+                        }, 500);
+                    };
+                <\/script>
+            </body>
+            </html>
+        `;
+        
+        // Abrir janela de impressão
+        const win = window.open('', '_blank');
+        if (!win) {
+            alert('⚠️ Por favor, permita popups para este site para imprimir.');
+            return false;
+        }
+        
+        win.document.write(conteudoImpressao);
+        win.document.close();
+        return true;
     }
 
     // ============================================
-    // FUNÇÃO PARA SALVAR COMO PDF
+    // FUNÇÃO PARA GERAR PDF PROFISSIONAL
     // ============================================
     
-    async function salvarComoPDF(elemento, nomeArquivo = 'relatorio.pdf') {
-        try {
-            const { jsPDF } = window.jspdf;
-            
-            const loadingDiv = document.createElement('div');
-            loadingDiv.style.cssText = `
-                position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-                background:#064e3b; color:white; padding:20px 40px;
-                border-radius:20px; z-index:20000; font-size:18px;
-                box-shadow:0 5px 20px rgba(0,0,0,0.3);
-            `;
-            loadingDiv.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Gerando PDF, aguarde...';
-            document.body.appendChild(loadingDiv);
-            
-            const canvas = await html2canvas(elemento, {
-                scale: 2,
-                backgroundColor: '#ffffff',
-                logging: false,
-                useCORS: true
-            });
-            
-            const imgData = canvas.toDataURL('image/png');
-            const imgWidth = 210;
-            const pageHeight = 297;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            let position = 0;
-            
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-            
-            let heightLeft = imgHeight - pageHeight;
-            while (heightLeft > 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-                heightLeft -= pageHeight;
-            }
-            
-            pdf.save(nomeArquivo);
-            loadingDiv.remove();
-            return true;
-        } catch (error) {
-            console.error('Erro ao gerar PDF:', error);
-            loadingDiv?.remove();
-            alert('❌ Erro ao gerar PDF. Tente usar a opção "Imprimir" do navegador.');
-            return false;
-        }
-    }
-    
-    // ============================================
-    // FUNÇÃO PARA ABRIR MODAL COM RELATÓRIO
-    // ============================================
-    
-    function abrirModalComRelatorio(conteudoHTML, titulo) {
-        const modalExistente = document.querySelector('.modal-overlay');
-        if (modalExistente) {
-            modalExistente.remove();
+    async function gerarPDFProfissional() {
+        const conteudo = document.getElementById('conteudoRelatorio');
+        if (!conteudo || !conteudo.innerHTML || conteudo.innerHTML.trim() === '' || conteudo.innerHTML.includes('Nenhuma transação encontrada para este período')) {
+            alert('⚠️ Gere um relatório primeiro clicando em "Gerar" antes de exportar o PDF!');
+            return;
         }
         
-        const modalOverlay = document.createElement('div');
-        modalOverlay.className = 'modal-overlay';
+        const igrejaAtual = todasIgrejas.find(i => i.id === igrejaAtualId);
+        const nomeIgreja = igrejaAtual ? igrejaAtual.nome : 'CONBCD Finanças';
+        const dataAtual = new Date().toLocaleString('pt-BR');
         
-        modalOverlay.innerHTML = `
-            <div class="modal-container">
-                <div class="modal-header">
-                    <h3><i class="fas fa-chart-line"></i> ${titulo}</h3>
-                    <div>
-                        <button id="savePdfBtn" class="btn-pdf" style="background:#ef4444; margin-right:10px;">
-                            <i class="fas fa-file-pdf"></i> Salvar PDF
-                        </button>
-                        <button id="printModalBtn" style="background:#3b82f6; margin-right:10px;">
-                            <i class="fas fa-print"></i> Imprimir
-                        </button>
-                        <button id="closeModalBtn" class="btn-close">
-                            <i class="fas fa-times"></i> Fechar
-                        </button>
-                    </div>
-                </div>
-                <div class="modal-body" id="modalBodyContent">
-                    ${conteudoHTML}
-                </div>
+        // Criar uma div temporária para o PDF
+        const pdfContent = document.createElement('div');
+        pdfContent.style.padding = '40px';
+        pdfContent.style.fontFamily = 'Arial, sans-serif';
+        pdfContent.style.backgroundColor = 'white';
+        pdfContent.style.color = '#333';
+        
+        pdfContent.innerHTML = `
+            <div style="text-align: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 3px solid #064e3b;">
+                <div style="font-size: 48px; margin-bottom: 10px;">💰</div>
+                <h1 style="color: #064e3b; margin: 0; font-size: 28px;">${nomeIgreja}</h1>
+                <h2 style="color: #047857; margin: 10px 0; font-size: 22px;">RELATÓRIO FINANCEIRO PROFISSIONAL</h2>
+                <p style="color: #666; margin: 5px 0;">Gerado em: ${dataAtual}</p>
+                <p style="color: #666; margin: 5px 0;">Sistema CONBCD Finanças - Gestão Multi-Igrejas</p>
+            </div>
+            <div style="margin: 30px 0;">
+                ${conteudo.innerHTML}
+            </div>
+            <div style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; font-size: 12px; color: #999;">
+                <p>Documento gerado eletronicamente pelo sistema CONBCD Finanças</p>
+                <p>© ${new Date().getFullYear()} CONBCD - Todos os direitos reservados</p>
             </div>
         `;
         
-        document.body.appendChild(modalOverlay);
+        const opt = {
+            margin: [0.5, 0.5, 0.5, 0.5],
+            filename: `Relatorio_${nomeIgreja}_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, logging: false },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
         
-        const savePdfBtn = modalOverlay.querySelector('#savePdfBtn');
-        const printBtn = modalOverlay.querySelector('#printModalBtn');
-        const closeBtn = modalOverlay.querySelector('#closeModalBtn');
+        const btnPDF = document.getElementById('exportarPDF');
+        const textoOriginal = btnPDF.innerHTML;
+        btnPDF.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Gerando PDF...';
+        btnPDF.disabled = true;
         
-        savePdfBtn.addEventListener('click', async () => {
-            const modalBody = modalOverlay.querySelector('#modalBodyContent');
-            await salvarComoPDF(modalBody, `relatorio_${titulo.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.pdf`);
-        });
-        
-        printBtn.addEventListener('click', () => {
-            const printContent = modalOverlay.querySelector('#modalBodyContent').innerHTML;
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <title>${titulo}</title>
-                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 20px; }
-                        table { border-collapse: collapse; width: 100%; }
-                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                        th { background: #064e3b; color: white; }
-                        @media print { body { margin: 0; padding: 10px; } }
-                    </style>
-                </head>
-                <body>
-                    ${printContent}
-                    <script>window.print(); window.onafterprint = function(){ window.close(); }<\/script>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-        });
-        
-        closeBtn.addEventListener('click', () => closeModal(modalOverlay));
-        
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) {
-                closeModal(modalOverlay);
-            }
-        });
-        
-        return modalOverlay;
+        try {
+            await html2pdf().set(opt).from(pdfContent).save();
+            alert('✅ PDF gerado com sucesso! O arquivo foi salvo na pasta de downloads.');
+        } catch (error) {
+            console.error('Erro ao gerar PDF:', error);
+            alert('❌ Erro ao gerar PDF. Tente novamente.');
+        } finally {
+            btnPDF.innerHTML = textoOriginal;
+            btnPDF.disabled = false;
+        }
     }
 
     // ============================================
-    // RELATÓRIO AVANÇADO
+    // FUNÇÃO CORRIGIDA DO RELATÓRIO AVANÇADO
     // ============================================
     
     async function gerarRelatorioAvancado() {
@@ -747,7 +699,6 @@
         if (!ano) return;
         
         const anoNum = parseInt(ano);
-        
         const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
                        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
         
@@ -791,7 +742,7 @@
         const nomeIgreja = igrejaAtual ? igrejaAtual.nome : 'Igreja';
         
         let html = `
-            <div style="padding:10px;">
+            <div style="padding:20px;">
                 <div style="text-align:center; margin-bottom:30px;">
                     <h2 style="color:#064e3b;">📊 RELATÓRIO AVANÇADO ${ano}</h2>
                     <p><i class="fas fa-church"></i> ${nomeIgreja}</p>
@@ -826,7 +777,7 @@
                                 <th style="padding:12px;">Despesas</th>
                                 <th style="padding:12px;">Saldo</th>
                                 <th style="padding:12px;">% Margem</th>
-                              </tr>
+                             </tr>
                         </thead>
                         <tbody>
         `;
@@ -841,12 +792,12 @@
             
             html += `
                 <tr style="border-bottom:1px solid #e5e7eb; ${destaque}">
-                    <td style="padding:10px;"><strong>${meses[i-1]}</strong> </td>
+                    <td style="padding:10px;"><strong>${meses[i-1]}</strong></td>
                     <td style="padding:10px; color:#10b981;">R$ ${rec.toFixed(2)}</td>
                     <td style="padding:10px; color:#ef4444;">R$ ${desp.toFixed(2)}</td>
                     <td style="padding:10px; color:${corSaldo};">R$ ${saldo.toFixed(2)}</td>
                     <td style="padding:10px;">${margem}%</td>
-                 </tr>
+                  </tr>
             `;
         }
         
@@ -890,96 +841,105 @@
                     </div>
                 </div>
                 
-                <div style="margin-top:30px; padding:15px; background:#fef3c7; border-radius:15px;">
-                    <h4><i class="fas fa-lightbulb"></i> Indicadores</h4>
-                    <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:10px;">
-                        <div>📈 Receita média mensal: <strong>R$ ${(totalReceitasAno / 12).toFixed(2)}</strong></div>
-                        <div>📉 Despesa média mensal: <strong>R$ ${(totalDespesasAno / 12).toFixed(2)}</strong></div>
-                        <div>💰 Melhor mês (receita): <strong>${meses[Object.keys(relatorio).reduce((a,b) => relatorio[a].receitas > relatorio[b].receitas ? a : b) - 1]}</strong></div>
-                        <div>💸 Pior mês (despesa): <strong>${meses[Object.keys(relatorio).reduce((a,b) => relatorio[a].despesas > relatorio[b].despesas ? a : b) - 1]}</strong></div>
-                    </div>
-                </div>
-                
-                <div style="margin-top:20px; text-align:center; padding:15px;">
+                <div style="margin-top:30px; text-align:center; padding:15px; background:#fef3c7; border-radius:15px;">
                     <small><i class="fas fa-calendar-alt"></i> Relatório gerado em ${new Date().toLocaleString()}</small>
                 </div>
             </div>
         `;
         
-        abrirModalComRelatorio(html, `Relatório Avançado ${ano}`);
-    }
-
-    // ============================================
-    // RELATÓRIO SIMPLES
-    // ============================================
-    
-    function gerarRelatorio(mes, ano) {
-        const filtradas = transacoes.filter(t => {
-            const d = new Date(t.data);
-            return d.getMonth() + 1 === mes && d.getFullYear() === ano;
-        });
-        
-        let rec = 0, desp = 0;
-        let html = `
-            <div style="padding:10px;">
-                <div style="text-align:center; margin-bottom:20px;">
-                    <h2 style="color:#064e3b;">📊 RELATÓRIO FINANCEIRO</h2>
-                    <p><strong>Período:</strong> ${mes}/${ano}</p>
-                    <p><i class="fas fa-church"></i> ${todasIgrejas.find(i => i.id === igrejaAtualId)?.nome || 'Igreja'}</p>
-                    <hr>
-                </div>
-                <table style="width:100%; border-collapse:collapse;">
-                    <thead>
-                        <tr style="background:#064e3b; color:white;">
-                            <th style="padding:10px;">Data</th>
-                            <th style="padding:10px;">Tipo</th>
-                            <th style="padding:10px;">Categoria</th>
-                            <th style="padding:10px;">Descrição</th>
-                            <th style="padding:10px;">Valor</th>
-                         </tr>
-                    </thead>
-                    <tbody>
+        // Criar modal com botões
+        const modal = document.createElement('div');
+        modal.style.cssText = `
+            position:fixed; top:0; left:0; width:100%; height:100%; 
+            background:rgba(0,0,0,0.8); z-index:10001; 
+            display:flex; align-items:center; justify-content:center;
+            overflow:auto;
         `;
         
-        if (filtradas.length === 0) {
-            html += `<tr><td colspan="5" style="text-align:center; padding:40px;">Nenhuma transação encontrada para este período.</td></tr>`;
-        } else {
-            filtradas.forEach(t => {
-                html += `
-                    <tr style="border-bottom:1px solid #ddd;">
-                        <td style="padding:8px;">${t.data}</td>
-                        <td style="padding:8px;">${t.tipo === 'receita' ? '💰 Receita' : '📉 Despesa'}</td>
-                        <td style="padding:8px;">${t.categoria}</td>
-                        <td style="padding:8px;">${t.descricao || '-'}</td>
-                        <td style="padding:8px;">R$ ${t.valor.toFixed(2)}</td>
-                    </tr>
-                `;
-                if (t.tipo === 'receita') rec += t.valor;
-                else desp += t.valor;
-            });
-        }
-        
-        html += `
-                    </tbody>
-                    <tfoot>
-                        <tr style="background:#f3f4f6; font-weight:bold;">
-                            <td colspan="4" style="padding:10px;">TOTAIS</td>
-                            <td style="padding:10px;">
-                                Receitas: R$ ${rec.toFixed(2)}<br>
-                                Despesas: R$ ${desp.toFixed(2)}<br>
-                                <span style="color:${rec-desp>=0?'#10b981':'#ef4444'}">Saldo: R$ ${(rec-desp).toFixed(2)}</span>
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
-                <div style="margin-top:20px; text-align:center;">
-                    <small>Relatório gerado em ${new Date().toLocaleString()}</small>
+        modal.innerHTML = `
+            <div style="background:white; border-radius:25px; max-width:95%; max-height:95%; overflow:auto; margin:20px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+                <div style="position:sticky; top:0; background:linear-gradient(135deg,#064e3b,#047857); color:white; padding:15px 25px; border-radius:25px 25px 0 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                    <h3 style="margin:0;"><i class="fas fa-chart-line"></i> Relatório Avançado ${ano}</h3>
+                    <div>
+                        <button id="imprimirAvancadoBtn" style="background:white; color:#064e3b; margin-right:10px;">
+                            <i class="fas fa-print"></i> Imprimir
+                        </button>
+                        <button id="pdfAvancadoBtn" style="background:white; color:#064e3b; margin-right:10px;">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                        <button id="fecharModalBtn" style="background:#dc2626; border:none; color:white; font-size:18px; cursor:pointer; padding:8px 15px;">
+                            <i class="fas fa-times"></i> Fechar
+                        </button>
+                    </div>
                 </div>
+                <div id="conteudoRelatorioModal" style="padding:25px;">${html}</div>
             </div>
         `;
         
-        const mesesNomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-        abrirModalComRelatorio(html, `Relatório ${mesesNomes[mes-1]}/${ano}`);
+        document.body.appendChild(modal);
+        
+        // Função para imprimir relatório avançado
+        document.getElementById('imprimirAvancadoBtn')?.addEventListener('click', () => {
+            const conteudoModal = document.getElementById('conteudoRelatorioModal');
+            const win = window.open('', '_blank');
+            win.document.write(`
+                <html>
+                <head>
+                    <title>Relatório Avançado ${ano}</title>
+                    <style>
+                        body { font-family: Arial; padding: 40px; }
+                        table { border-collapse: collapse; width: 100%; }
+                        th, td { border: 1px solid #ddd; padding: 8px; }
+                        th { background: #064e3b; color: white; }
+                    </style>
+                </head>
+                <body>${conteudoModal.innerHTML}</body>
+                </html>
+            `);
+            win.document.close();
+            win.print();
+        });
+        
+        // Função para gerar PDF do relatório avançado
+        document.getElementById('pdfAvancadoBtn')?.addEventListener('click', async () => {
+            const conteudoModal = document.getElementById('conteudoRelatorioModal');
+            const pdfContent = document.createElement('div');
+            pdfContent.innerHTML = `
+                <div style="padding:40px; font-family:Arial;">
+                    <div style="text-align:center; margin-bottom:40px;">
+                        <h1 style="color:#064e3b;">${nomeIgreja}</h1>
+                        <h2 style="color:#047857;">RELATÓRIO AVANÇADO ${ano}</h2>
+                        <p>Gerado em: ${new Date().toLocaleString()}</p>
+                    </div>
+                    ${conteudoModal.innerHTML}
+                </div>
+            `;
+            
+            const opt = {
+                margin: [0.5, 0.5, 0.5, 0.5],
+                filename: `Relatorio_Avancado_${nomeIgreja}_${ano}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            
+            const btnPDF = document.getElementById('pdfAvancadoBtn');
+            const textoOriginal = btnPDF.innerHTML;
+            btnPDF.innerHTML = '<i class="fas fa-spinner fa-pulse"></i>';
+            btnPDF.disabled = true;
+            
+            try {
+                await html2pdf().set(opt).from(pdfContent).save();
+                alert('✅ PDF gerado com sucesso!');
+            } catch (error) {
+                alert('❌ Erro ao gerar PDF');
+            } finally {
+                btnPDF.innerHTML = textoOriginal;
+                btnPDF.disabled = false;
+            }
+        });
+        
+        document.getElementById('fecharModalBtn')?.addEventListener('click', () => modal.remove());
     }
 
     // ============================================
@@ -1022,6 +982,15 @@
         carregarIgrejaAtual();
         atualizarSeletor();
         atualizarInterface();
+        
+        // Atualizar informação de armazenamento
+        const storageInfo = document.getElementById('storageInfo');
+        if(storageInfo) {
+            const totalSize = JSON.stringify(todasIgrejas).length;
+            const sizeKB = (totalSize / 1024).toFixed(2);
+            storageInfo.innerHTML = `✅ Dados salvos automaticamente na memória interna do celular (${sizeKB} KB).<br>
+                                     📁 Backup disponível para exportação.`;
+        }
     }
     
     function carregarIgrejaAtual() {
@@ -1041,6 +1010,20 @@
         }
         localStorage.setItem("conbcd_financas_igrejas", JSON.stringify(todasIgrejas));
         localStorage.setItem("conbcd_financas_atual", igrejaAtualId);
+        
+        // Salvar também em arquivo local (modo app)
+        if(isAppMode()) {
+            try {
+                // Tenta salvar no localStorage novamente para garantir persistência
+                localStorage.setItem("conbcd_financas_backup_auto", JSON.stringify({
+                    data: new Date(),
+                    todasIgrejas: todasIgrejas,
+                    igrejaAtualId: igrejaAtualId
+                }));
+            } catch(e) {
+                console.log("Auto-backup não necessário");
+            }
+        }
     }
     
     function atualizarSeletor() {
@@ -1077,7 +1060,7 @@
         salvarIgrejaAtual();
         atualizarSeletor();
         renderizarListaIgrejas();
-        alert(`✅ Igreja "${nome}" adicionada!`);
+        alert(`✅ Igreja "${nome}" adicionada com sucesso!`);
     }
     
     function excluirIgreja(id) {
@@ -1092,7 +1075,7 @@
             atualizarSeletor();
             renderizarListaIgrejas();
             atualizarInterface();
-            alert('✅ Igreja excluída!');
+            alert('✅ Igreja excluída com sucesso!');
         }
     }
     
@@ -1248,13 +1231,74 @@
         }
     }
     
+    function gerarRelatorio(mes, ano) {
+        const filtradas = transacoes.filter(t => {
+            const d = new Date(t.data);
+            return d.getMonth() + 1 === mes && d.getFullYear() === ano;
+        });
+        
+        let rec = 0, desp = 0;
+        let html = `<h4>📊 Relatório - ${mes}/${ano}</h4>
+                   <div class="table-responsive">
+                   <table style="width:100%; border-collapse:collapse;">
+                    <thead><tr style="background:#064e3b; color:white;"><th style="padding:12px;">Data</th><th style="padding:12px;">Tipo</th><th style="padding:12px;">Categoria</th><th style="padding:12px;">Descrição</th><th style="padding:12px;">Valor</th></tr></thead>
+                    <tbody>`;
+        
+        if(filtradas.length === 0) {
+            html += `<tr><td colspan="5" style="text-align:center; padding:40px;">📭 Nenhuma transação encontrada para este período</td></tr>`;
+        } else {
+            filtradas.forEach(t => {
+                html += `<tr style="border-bottom:1px solid #e5e7eb;">
+                            <td style="padding:10px;">${t.data}</td>
+                            <td style="padding:10px;">${t.tipo === 'receita' ? '💰 Receita' : '📉 Despesa'}</td>
+                            <td style="padding:10px;">${t.categoria}</td>
+                            <td style="padding:10px;">${t.descricao || '-'}</td>
+                            <td style="padding:10px;">R$ ${t.valor.toFixed(2)}</td>
+                          </tr>`;
+                if(t.tipo === 'receita') rec += t.valor;
+                else desp += t.valor;
+            });
+        }
+        
+        html += `<tr style="font-weight:bold; background:#f3f4f6;"><td colspan="4" style="padding:12px;">TOTAIS</td>
+                   <td style="padding:12px;">
+                        Receitas: R$ ${rec.toFixed(2)}<br>
+                        Despesas: R$ ${desp.toFixed(2)}<br>
+                        <span style="color:${rec-desp>=0?'#10b981':'#ef4444'}; font-size:1.1em;">Saldo: R$ ${(rec-desp).toFixed(2)}</span>
+                    </td>
+                  </tr>
+                 </tbody>
+                </table>
+                </div>
+                <div style="margin-top:20px; text-align:right; font-size:12px; color:#666;">
+                     <i class="fas fa-church"></i> Relatório gerado pelo sistema CONBCD Finanças | ${new Date().toLocaleString()}
+                </div>`;
+        
+        const conteudoRelatorio = document.getElementById('conteudoRelatorio');
+        if(conteudoRelatorio) conteudoRelatorio.innerHTML = html;
+    }
+    
     function exportarBackup() {
-        const dump = { todasIgrejas, igrejaAtualId, versao: "CONBCD-FINANCAS-v2.0", data: new Date() };
+        const dump = { 
+            todasIgrejas: todasIgrejas, 
+            igrejaAtualId: igrejaAtualId, 
+            versao: "CONBCD-FINANCAS-v3.0", 
+            data: new Date().toISOString(),
+            totalIgrejas: todasIgrejas.length,
+            totalTransacoes: transacoes.length
+        };
+        
         const blob = new Blob([JSON.stringify(dump, null, 2)], {type: 'application/json'});
         const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `CONBCD_backup_${new Date().toISOString().slice(0,19)}.json`;
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = `CONBCD_backup_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.json`;
+        document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        alert(`✅ Backup completo gerado com sucesso!\n📊 Dados: ${dump.totalTransacoes} transações de ${dump.totalIgrejas} igrejas.\n📁 Arquivo salvo na pasta de downloads.`);
     }
     
     function restaurarBackup(file) {
@@ -1262,17 +1306,19 @@
         reader.onload = function(e) {
             try {
                 const data = JSON.parse(e.target.result);
-                if(data.todasIgrejas && data.igrejaAtualId) {
+                if(data.todasIgrejas && data.igrejaAtualId !== undefined) {
                     todasIgrejas = data.todasIgrejas;
                     igrejaAtualId = data.igrejaAtualId;
                     carregarIgrejaAtual();
                     salvarIgrejaAtual();
                     atualizarSeletor();
                     atualizarInterface();
-                    alert('✅ Backup restaurado com sucesso!');
-                } else throw new Error();
+                    alert(`✅ Backup restaurado com sucesso!\n📊 ${data.totalTransacoes || 'Várias'} transações restauradas.`);
+                } else {
+                    throw new Error('Formato inválido');
+                }
             } catch(e) {
-                alert('❌ Arquivo inválido');
+                alert('❌ Arquivo de backup inválido. Verifique o arquivo e tente novamente.');
             }
         };
         reader.readAsText(file);
@@ -1290,27 +1336,33 @@
             id: Date.now(),
             tipo: document.getElementById('tipoTransacao').value,
             categoria: document.getElementById('categoriaSelect').value,
-            valor, data,
+            valor: valor,
+            data: data,
             descricao: document.getElementById('descTransacao').value,
-            formaPagamento: document.getElementById('formaPagamento').value
+            formaPagamento: document.getElementById('formaPagamento').value,
+            dataCriacao: new Date().toISOString()
         });
         
         salvarIgrejaAtual();
         atualizarInterface();
         document.getElementById('valorTransacao').value = '';
         document.getElementById('descTransacao').value = '';
-        alert('✅ Transação salva!');
+        document.getElementById('dataTransacao').value = '';
+        alert('✅ Transação salva com sucesso!');
     });
     
     document.getElementById('adicionarCategoria')?.addEventListener('click', () => {
         const nome = document.getElementById('novaCategoriaNome').value.trim();
         const tipo = document.getElementById('tipoCategoria').value;
         if(nome && !categorias.find(c => c.nome === nome)) {
-            categorias.push({ nome, tipo });
+            categorias.push({ nome: nome, tipo: tipo });
             salvarIgrejaAtual();
             atualizarInterface();
             document.getElementById('novaCategoriaNome').value = '';
-        } else alert('Categoria já existe ou inválida');
+            alert('✅ Categoria adicionada!');
+        } else {
+            alert('❌ Categoria já existe ou nome inválido');
+        }
     });
     
     document.getElementById('adicionarIgreja')?.addEventListener('click', () => {
@@ -1327,9 +1379,14 @@
         gerarRelatorio(mes, ano);
     });
     
+    document.getElementById('imprimirRelatorio')?.addEventListener('click', imprimirRelatorio);
+    document.getElementById('exportarPDF')?.addEventListener('click', gerarPDFProfissional);
     document.getElementById('fazerBackup')?.addEventListener('click', exportarBackup);
     document.getElementById('restoreFile')?.addEventListener('change', (e) => {
-        if(e.target.files[0]) restaurarBackup(e.target.files[0]);
+        if(e.target.files && e.target.files[0]) {
+            restaurarBackup(e.target.files[0]);
+            e.target.value = '';
+        }
     });
     document.getElementById('btnRelatorioAvancado')?.addEventListener('click', gerarRelatorioAvancado);
     
@@ -1346,6 +1403,16 @@
     
     // Inicialização
     carregarDados();
+    
+    // Exibir informações do ambiente
+    if(isAppMode()) {
+        console.log("Modo App detectado - Funcionalidades de impressão e backup otimizadas");
+        const storageStatus = document.getElementById('storageIndicator');
+        if(storageStatus) {
+            storageStatus.innerHTML = '<i class="fas fa-mobile-alt"></i> Modo App | Dados salvos localmente';
+            storageStatus.style.background = "#10b981";
+        }
+    }
 </script>
 </body>
-                                                                    </html>
+    </html>

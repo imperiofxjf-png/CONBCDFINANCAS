@@ -312,7 +312,6 @@
             color: #764ba2;
         }
 
-        /* Modal de impressão */
         .print-modal {
             position: fixed;
             top: 0;
@@ -362,6 +361,29 @@
             border-radius: 10px;
         }
 
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            color: #064e3b;
+            text-align: center;
+        }
+
         @media print {
             .no-print { display: none; }
             .print-modal { display: none !important; }
@@ -384,7 +406,7 @@
                 <select id="seletorIgreja"></select>
             </div>
         </div>
-        <div class="subtitle"><i class="fas fa-chart-line"></i> Gestão Financeira Profissional | Múltiplas Igrejas</div>
+        <div class="subtitle"><i class="fas fa-chart-line"></i> Gestão Financeira Profissional | Armazenamento Ilimitado</div>
     </div>
 
     <div class="dashboard-cards no-print">
@@ -498,39 +520,838 @@
             <input type="file" id="restoreFile" accept=".json" style="display:none;">
         </div>
         <div class="info-box" style="margin-top:20px; padding:15px; background:#f0fdf4; border-radius:15px;">
-            <i class="fas fa-info-circle"></i> <strong>Informação:</strong> 
-            <span id="storageInfo">Os dados são salvos automaticamente na memória interna do celular.</span>
+            <i class="fas fa-info-circle"></i> <strong>Informação de Armazenamento:</strong> 
+            <div id="storageInfo">Carregando informações...</div>
         </div>
     </div>
 </div>
 
 <div class="storage-status" id="storageIndicator">
-    <i class="fas fa-check-circle"></i> <span>Sistema Online</span>
+    <i class="fas fa-database"></i> <span>Inicializando...</span>
 </div>
 
 <script>
     // ============================================
-    // APP COMPLETO CONBCD FINANÇAS
-    // COM IMPRESSÃO CORRIGIDA PARA APK
+    // APP COM INDEXEDDB - ARMAZENAMENTO ILIMITADO
     // ============================================
     
+    // Configuração do IndexedDB
+    const DB_NAME = 'CONBCD_Financas_DB';
+    const DB_VERSION = 1;
+    let db = null;
     let todasIgrejas = [];
     let igrejaAtualId = null;
     let transacoes = [];
     let categorias = [];
     let deferredPrompt = null;
 
-    // Verificar se está em modo App/WebView
-    function isAppMode() {
-        return /WebView|Android.*Mobile|iPhone|iPad|iPod|Mobile.*Safari/.test(navigator.userAgent) || 
-               window.navigator.standalone === true ||
-               window.matchMedia('(display-mode: standalone)').matches;
+    // ============================================
+    // INICIALIZAR INDEXEDDB
+    // ============================================
+    
+    async function initDatabase() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            
+            request.onerror = (event) => {
+                console.error('Erro ao abrir IndexedDB:', event);
+                reject(event);
+            };
+            
+            request.onsuccess = (event) => {
+                db = event.target.result;
+                console.log('IndexedDB iniciado com sucesso!');
+                resolve(db);
+            };
+            
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                
+                // Criar stores (tabelas)
+                if (!db.objectStoreNames.contains('igrejas')) {
+                    const igrejaStore = db.createObjectStore('igrejas', { keyPath: 'id' });
+                    igrejaStore.createIndex('nome', 'nome', { unique: false });
+                }
+                
+                if (!db.objectStoreNames.contains('transacoes')) {
+                    const transacaoStore = db.createObjectStore('transacoes', { keyPath: 'id' });
+                    transacaoStore.createIndex('igrejaId', 'igrejaId', { unique: false });
+                    transacaoStore.createIndex('data', 'data', { unique: false });
+                    transacaoStore.createIndex('tipo', 'tipo', { unique: false });
+                }
+                
+                if (!db.objectStoreNames.contains('categorias')) {
+                    const categoriaStore = db.createObjectStore('categorias', { keyPath: 'id' });
+                    categoriaStore.createIndex('igrejaId', 'igrejaId', { unique: false });
+                }
+                
+                console.log('Database structure created');
+            };
+        });
     }
 
     // ============================================
-    // FUNÇÃO DE IMPRESSÃO CORRIGIDA PARA APK
+    // FUNÇÕES DE CRUD - IGREJAS
     // ============================================
     
+    async function salvarIgrejas(igrejas) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['igrejas'], 'readwrite');
+            const store = transaction.objectStore('igrejas');
+            
+            // Limpar store atual
+            store.clear();
+            
+            // Adicionar todas as igrejas
+            igrejas.forEach(igreja => {
+                store.put(igreja);
+            });
+            
+            transaction.oncomplete = () => {
+                todasIgrejas = igrejas;
+                resolve();
+            };
+            
+            transaction.onerror = (event) => {
+                reject(event);
+            };
+        });
+    }
+    
+    async function carregarIgrejas() {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['igrejas'], 'readonly');
+            const store = transaction.objectStore('igrejas');
+            const request = store.getAll();
+            
+            request.onsuccess = () => {
+                todasIgrejas = request.result || [];
+                resolve(todasIgrejas);
+            };
+            
+            request.onerror = (event) => {
+                reject(event);
+            };
+        });
+    }
+    
+    // ============================================
+    // FUNÇÕES DE CRUD - TRANSAÇÕES
+    // ============================================
+    
+    async function salvarTransacoes(igrejaId, transacoesList) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['transacoes'], 'readwrite');
+            const store = transaction.objectStore('transacoes');
+            
+            // Remover transações antigas da igreja
+            const index = store.index('igrejaId');
+            const range = IDBKeyRange.only(igrejaId);
+            const deleteRequest = index.openCursor(range);
+            
+            deleteRequest.onsuccess = (event) => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    store.delete(cursor.primaryKey);
+                    cursor.continue();
+                }
+            };
+            
+            transaction.oncomplete = () => {
+                // Adicionar novas transações
+                const addTransaction = db.transaction(['transacoes'], 'readwrite');
+                const addStore = addTransaction.objectStore('transacoes');
+                
+                transacoesList.forEach(transacao => {
+                    addStore.put(transacao);
+                });
+                
+                addTransaction.oncomplete = () => {
+                    resolve();
+                };
+                
+                addTransaction.onerror = (event) => {
+                    reject(event);
+                };
+            };
+            
+            transaction.onerror = (event) => {
+                reject(event);
+            };
+        });
+    }
+    
+    async function carregarTransacoes(igrejaId) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['transacoes'], 'readonly');
+            const store = transaction.objectStore('transacoes');
+            const index = store.index('igrejaId');
+            const range = IDBKeyRange.only(igrejaId);
+            const request = index.getAll(range);
+            
+            request.onsuccess = () => {
+                transacoes = request.result || [];
+                resolve(transacoes);
+            };
+            
+            request.onerror = (event) => {
+                reject(event);
+            };
+        });
+    }
+    
+    // ============================================
+    // FUNÇÕES DE CRUD - CATEGORIAS
+    // ============================================
+    
+    async function salvarCategorias(igrejaId, categoriasList) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['categorias'], 'readwrite');
+            const store = transaction.objectStore('categorias');
+            
+            // Remover categorias antigas
+            const index = store.index('igrejaId');
+            const range = IDBKeyRange.only(igrejaId);
+            const deleteRequest = index.openCursor(range);
+            
+            deleteRequest.onsuccess = (event) => {
+                const cursor = event.target.result;
+                if (cursor) {
+                    store.delete(cursor.primaryKey);
+                    cursor.continue();
+                }
+            };
+            
+            transaction.oncomplete = () => {
+                // Adicionar novas categorias
+                const addTransaction = db.transaction(['categorias'], 'readwrite');
+                const addStore = addTransaction.objectStore('categorias');
+                
+                categoriasList.forEach((categoria, index) => {
+                    addStore.put({
+                        id: `${igrejaId}_${index}_${Date.now()}`,
+                        igrejaId: igrejaId,
+                        nome: categoria.nome,
+                        tipo: categoria.tipo
+                    });
+                });
+                
+                addTransaction.oncomplete = () => {
+                    resolve();
+                };
+                
+                addTransaction.onerror = (event) => {
+                    reject(event);
+                };
+            };
+            
+            transaction.onerror = (event) => {
+                reject(event);
+            };
+        });
+    }
+    
+    async function carregarCategorias(igrejaId) {
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['categorias'], 'readonly');
+            const store = transaction.objectStore('categorias');
+            const index = store.index('igrejaId');
+            const range = IDBKeyRange.only(igrejaId);
+            const request = index.getAll(range);
+            
+            request.onsuccess = () => {
+                const categoriasData = request.result || [];
+                categorias = categoriasData.map(c => ({ nome: c.nome, tipo: c.tipo }));
+                resolve(categorias);
+            };
+            
+            request.onerror = (event) => {
+                reject(event);
+            };
+        });
+    }
+    
+    // ============================================
+    // FUNÇÕES DE INFORMAÇÃO DE ARMAZENAMENTO
+    // ============================================
+    
+    async function getStorageInfo() {
+        try {
+            if ('storage' in navigator && 'estimate' in navigator.storage) {
+                const estimate = await navigator.storage.estimate();
+                const used = estimate.usage || 0;
+                const quota = estimate.quota || 0;
+                const percentUsed = (used / quota * 100).toFixed(2);
+                
+                // Contar registros
+                const totalIgrejas = todasIgrejas.length;
+                let totalTransacoes = 0;
+                for (const igreja of todasIgrejas) {
+                    const transacoesIgreja = await carregarTransacoes(igreja.id);
+                    totalTransacoes += transacoesIgreja.length;
+                }
+                
+                return {
+                    used: used,
+                    quota: quota,
+                    percentUsed: percentUsed,
+                    usedMB: (used / (1024 * 1024)).toFixed(2),
+                    quotaMB: (quota / (1024 * 1024)).toFixed(2),
+                    totalIgrejas: totalIgrejas,
+                    totalTransacoes: totalTransacoes,
+                    igrejas: todasIgrejas
+                };
+            }
+        } catch (e) {
+            console.error('Erro ao obter informações de armazenamento:', e);
+        }
+        return null;
+    }
+    
+    async function updateStorageDisplay() {
+        const info = await getStorageInfo();
+        const storageInfoDiv = document.getElementById('storageInfo');
+        const storageIndicator = document.getElementById('storageIndicator');
+        
+        if (info) {
+            const percentColor = info.percentUsed > 80 ? '#ef4444' : (info.percentUsed > 50 ? '#f59e0b' : '#10b981');
+            storageInfoDiv.innerHTML = `
+                <div style="margin-top: 10px;">
+                    <p><strong>📊 Status do Armazenamento:</strong></p>
+                    <div style="background: #e5e7eb; border-radius: 10px; overflow: hidden; margin: 10px 0;">
+                        <div style="background: ${percentColor}; width: ${info.percentUsed}%; height: 20px; transition: width 0.3s;"></div>
+                    </div>
+                    <p>✅ <strong>Espaço Usado:</strong> ${info.usedMB} MB de ${info.quotaMB} MB (${info.percentUsed}%)</p>
+                    <p>🏛️ <strong>Igrejas Cadastradas:</strong> ${info.totalIgrejas}</p>
+                    <p>💰 <strong>Total de Transações:</strong> ${info.totalTransacoes}</p>
+                    <p>💾 <strong>Capacidade Disponível:</strong> ${(info.quotaMB - info.usedMB).toFixed(2)} MB</p>
+                    <p class="text-success" style="color: #10b981; margin-top: 10px;">
+                        <i class="fas fa-infinity"></i> <strong>Armazenamento Ilimitado!</strong> Enquanto houver espaço no celular, você pode cadastrar quantos dados quiser.
+                    </p>
+                </div>
+            `;
+            
+            storageIndicator.innerHTML = `<i class="fas fa-database"></i> ${info.usedMB} MB / ${info.quotaMB} MB usado`;
+            storageIndicator.style.background = percentColor === '#10b981' ? '#10b981' : (percentColor === '#f59e0b' ? '#f59e0b' : '#ef4444');
+        } else {
+            storageInfoDiv.innerHTML = `
+                <p>✅ <strong>Modo Armazenamento Ilimitado Ativo!</strong></p>
+                <p>📱 Os dados são salvos no IndexedDB do seu dispositivo.</p>
+                <p>💾 Capacidade: Limitada apenas pelo espaço disponível na memória interna do celular.</p>
+                <p>🚀 Você pode cadastrar MILHARES de transações sem preocupação!</p>
+            `;
+            storageIndicator.innerHTML = '<i class="fas fa-infinity"></i> Armazenamento Ilimitado';
+            storageIndicator.style.background = '#10b981';
+        }
+    }
+    
+    // ============================================
+    // FUNÇÕES PRINCIPAIS DO APP (MODIFICADAS)
+    // ============================================
+    
+    function showLoading(message = 'Carregando...') {
+        let loading = document.querySelector('.loading-overlay');
+        if (!loading) {
+            loading = document.createElement('div');
+            loading.className = 'loading-overlay';
+            loading.innerHTML = `
+                <div class="loading-content">
+                    <i class="fas fa-spinner fa-pulse fa-2x"></i>
+                    <p id="loadingMessage">${message}</p>
+                </div>
+            `;
+            document.body.appendChild(loading);
+        } else {
+            const msgElement = loading.querySelector('#loadingMessage');
+            if (msgElement) msgElement.textContent = message;
+            loading.style.display = 'flex';
+        }
+    }
+    
+    function hideLoading() {
+        const loading = document.querySelector('.loading-overlay');
+        if (loading) {
+            loading.style.display = 'none';
+        }
+    }
+    
+    async function carregarDados() {
+        showLoading('Carregando dados...');
+        try {
+            // Carregar igrejas
+            await carregarIgrejas();
+            
+            if (todasIgrejas.length === 0) {
+                // Dados iniciais
+                todasIgrejas = [{
+                    id: Date.now(),
+                    nome: "Igreja Batista Casa de Deus",
+                    endereco: "",
+                    dataCriacao: new Date().toISOString()
+                }];
+                await salvarIgrejas(todasIgrejas);
+            }
+            
+            // Carregar igreja atual
+            const savedAtual = localStorage.getItem("conbcd_financas_atual");
+            if (savedAtual) {
+                igrejaAtualId = parseInt(savedAtual);
+                if (!todasIgrejas.find(i => i.id === igrejaAtualId)) {
+                    igrejaAtualId = todasIgrejas[0].id;
+                }
+            } else {
+                igrejaAtualId = todasIgrejas[0].id;
+            }
+            
+            // Carregar dados da igreja atual
+            await carregarIgrejaAtual();
+            atualizarSeletor();
+            await atualizarInterface();
+            await updateStorageDisplay();
+        } catch (error) {
+            console.error('Erro ao carregar dados:', error);
+            alert('Erro ao carregar dados. Recarregue a página.');
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    async function carregarIgrejaAtual() {
+        await Promise.all([
+            carregarTransacoes(igrejaAtualId),
+            carregarCategorias(igrejaAtualId)
+        ]);
+        
+        if (categorias.length === 0) {
+            categorias = [
+                { nome: "Dízimos", tipo: "receita" },
+                { nome: "Ofertas", tipo: "receita" },
+                { nome: "Eventos", tipo: "ambos" },
+                { nome: "Manutenção", tipo: "despesa" },
+                { nome: "Salários", tipo: "despesa" },
+                { nome: "Material", tipo: "despesa" },
+                { nome: "Missões", tipo: "receita" }
+            ];
+            await salvarCategorias(igrejaAtualId, categorias);
+        }
+    }
+    
+    async function salvarIgrejaAtual() {
+        const index = todasIgrejas.findIndex(i => i.id === igrejaAtualId);
+        if (index !== -1) {
+            todasIgrejas[index].transacoes = transacoes;
+            todasIgrejas[index].categorias = categorias;
+            todasIgrejas[index].ultimaAtualizacao = new Date().toISOString();
+        }
+        await salvarIgrejas(todasIgrejas);
+        await salvarTransacoes(igrejaAtualId, transacoes);
+        await salvarCategorias(igrejaAtualId, categorias);
+        localStorage.setItem("conbcd_financas_atual", igrejaAtualId);
+        await updateStorageDisplay();
+    }
+    
+    function atualizarSeletor() {
+        const select = document.getElementById('seletorIgreja');
+        if (!select) return;
+        select.innerHTML = '';
+        todasIgrejas.forEach(igreja => {
+            const option = document.createElement('option');
+            option.value = igreja.id;
+            option.textContent = `${igreja.nome} ${igreja.id === igrejaAtualId ? '✓' : ''}`;
+            if (igreja.id === igrejaAtualId) option.selected = true;
+            select.appendChild(option);
+        });
+    }
+    
+    async function trocarIgreja(id) {
+        if (id == igrejaAtualId) return;
+        showLoading('Trocando de igreja...');
+        try {
+            await salvarIgrejaAtual();
+            igrejaAtualId = parseInt(id);
+            await carregarIgrejaAtual();
+            await atualizarInterface();
+            atualizarSeletor();
+            await updateStorageDisplay();
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    async function adicionarIgreja(nome, endereco) {
+        if (!nome.trim()) return alert('Informe o nome da igreja');
+        showLoading('Adicionando igreja...');
+        try {
+            const novaId = Date.now();
+            todasIgrejas.push({
+                id: novaId,
+                nome: nome.trim(),
+                endereco: endereco || "",
+                transacoes: [],
+                categorias: [{ nome: "Dízimos", tipo: "receita" }, { nome: "Ofertas", tipo: "receita" }],
+                dataCriacao: new Date().toISOString()
+            });
+            await salvarIgrejas(todasIgrejas);
+            await salvarCategorias(novaId, [{ nome: "Dízimos", tipo: "receita" }, { nome: "Ofertas", tipo: "receita" }]);
+            atualizarSeletor();
+            await renderizarListaIgrejas();
+            alert(`✅ Igreja "${nome}" adicionada com sucesso!`);
+            await updateStorageDisplay();
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    async function excluirIgreja(id) {
+        if (todasIgrejas.length <= 1) return alert('❌ Não é possível excluir a única igreja.');
+        if (confirm('Excluir esta igreja e todos os seus dados financeiros?')) {
+            showLoading('Excluindo igreja...');
+            try {
+                // Remover transações da igreja
+                const transaction = db.transaction(['transacoes'], 'readwrite');
+                const store = transaction.objectStore('transacoes');
+                const index = store.index('igrejaId');
+                const range = IDBKeyRange.only(id);
+                const deleteRequest = index.openCursor(range);
+                
+                deleteRequest.onsuccess = (event) => {
+                    const cursor = event.target.result;
+                    if (cursor) {
+                        store.delete(cursor.primaryKey);
+                        cursor.continue();
+                    }
+                };
+                
+                // Remover categorias
+                const catTransaction = db.transaction(['categorias'], 'readwrite');
+                const catStore = catTransaction.objectStore('categorias');
+                const catIndex = catStore.index('igrejaId');
+                const catRange = IDBKeyRange.only(id);
+                const catDeleteRequest = catIndex.openCursor(catRange);
+                
+                catDeleteRequest.onsuccess = (event) => {
+                    const cursor = event.target.result;
+                    if (cursor) {
+                        catStore.delete(cursor.primaryKey);
+                        cursor.continue();
+                    }
+                };
+                
+                // Aguardar exclusões
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Remover igreja
+                todasIgrejas = todasIgrejas.filter(i => i.id !== id);
+                if (igrejaAtualId === id) {
+                    igrejaAtualId = todasIgrejas[0].id;
+                    await carregarIgrejaAtual();
+                }
+                await salvarIgrejas(todasIgrejas);
+                atualizarSeletor();
+                await renderizarListaIgrejas();
+                await atualizarInterface();
+                alert('✅ Igreja excluída com sucesso!');
+                await updateStorageDisplay();
+            } finally {
+                hideLoading();
+            }
+        }
+    }
+    
+    async function renderizarListaIgrejas() {
+        const container = document.getElementById('listaIgrejas');
+        if (!container) return;
+        container.innerHTML = '<h4>📌 Igrejas Cadastradas</h4>';
+        
+        for (const igreja of todasIgrejas) {
+            const transacoesIgreja = await carregarTransacoes(igreja.id);
+            const div = document.createElement('div');
+            div.className = 'categoria-item';
+            div.innerHTML = `
+                <span><strong>${igreja.nome}</strong> ${igreja.id === igrejaAtualId ? '(ATUAL)' : ''}<br>
+                <small>${igreja.endereco || 'Sem endereço'} | Transações: ${transacoesIgreja.length}</small></span>
+                <button onclick="excluirIgreja(${igreja.id})" style="background:#ef4444;">✖️</button>
+            `;
+            container.appendChild(div);
+        }
+    }
+    
+    // Funções auxiliares (mantidas iguais, mas com async)
+    async function atualizarInterface() {
+        await atualizarCards();
+        atualizarSelectCategorias();
+        await renderizarTabela();
+        await renderizarCategorias();
+        await renderizarListaIgrejas();
+        renderizarGraficos();
+        await atualizarUltimasTransacoes();
+    }
+    
+    function atualizarCards() {
+        let totalRec = 0, totalDesp = 0;
+        transacoes.forEach(t => {
+            if (t.tipo === 'receita') totalRec += t.valor;
+            else totalDesp += t.valor;
+        });
+        document.getElementById('totalReceitas').innerHTML = `R$ ${totalRec.toFixed(2)}`;
+        document.getElementById('totalDespesas').innerHTML = `R$ ${totalDesp.toFixed(2)}`;
+        document.getElementById('saldoTotal').innerHTML = `R$ ${(totalRec - totalDesp).toFixed(2)}`;
+    }
+    
+    function atualizarSelectCategorias() {
+        const select = document.getElementById('categoriaSelect');
+        if (!select) return;
+        select.innerHTML = '';
+        categorias.forEach(cat => {
+            const opt = document.createElement('option');
+            opt.value = cat.nome;
+            opt.textContent = `${cat.nome} (${cat.tipo})`;
+            select.appendChild(opt);
+        });
+    }
+    
+    async function renderizarTabela() {
+        const tbody = document.querySelector('#tabelaTransacoes tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        [...transacoes].reverse().forEach(t => {
+            const row = tbody.insertRow();
+            row.insertCell(0).textContent = t.data;
+            row.insertCell(1).innerHTML = `<span class="badge ${t.tipo === 'receita' ? 'badge-receita' : 'badge-despesa'}">${t.tipo === 'receita' ? 'Receita' : 'Despesa'}</span>`;
+            row.insertCell(2).textContent = t.categoria;
+            row.insertCell(3).textContent = t.descricao || '-';
+            row.insertCell(4).textContent = `R$ ${t.valor.toFixed(2)}`;
+            const acoes = row.insertCell(5);
+            const btnDel = document.createElement('button');
+            btnDel.innerHTML = '<i class="fas fa-trash"></i>';
+            btnDel.style.background = '#dc2626';
+            btnDel.onclick = async () => {
+                if (confirm('Excluir transação?')) {
+                    transacoes = transacoes.filter(x => x.id !== t.id);
+                    await salvarIgrejaAtual();
+                    await atualizarInterface();
+                }
+            };
+            acoes.appendChild(btnDel);
+        });
+    }
+    
+    async function renderizarCategorias() {
+        const container = document.getElementById('listaCategorias');
+        if (!container) return;
+        container.innerHTML = '<h4>📌 Categorias Disponíveis</h4>';
+        categorias.forEach((cat, idx) => {
+            const div = document.createElement('div');
+            div.className = 'categoria-item';
+            div.innerHTML = `<span><strong>${cat.nome}</strong> (${cat.tipo})</span>
+                           <button onclick="excluirCategoria(${idx})" style="background:#ef4444;">✖️</button>`;
+            container.appendChild(div);
+        });
+    }
+    
+    window.excluirCategoria = async function(idx) {
+        const catNome = categorias[idx].nome;
+        if (transacoes.some(t => t.categoria === catNome)) {
+            alert(`❌ Não é possível excluir "${catNome}" pois há transações vinculadas.`);
+        } else {
+            categorias.splice(idx, 1);
+            await salvarIgrejaAtual();
+            await atualizarInterface();
+        }
+    };
+    
+    let graficoBarra, graficoPizza;
+    function renderizarGraficos() {
+        const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        let receitas = new Array(12).fill(0);
+        let despesas = new Array(12).fill(0);
+        
+        transacoes.forEach(t => {
+            const mes = new Date(t.data).getMonth();
+            if (t.tipo === 'receita') receitas[mes] += t.valor;
+            else despesas[mes] += t.valor;
+        });
+        
+        const ctxBar = document.getElementById('graficoMensal')?.getContext('2d');
+        if (ctxBar) {
+            if (graficoBarra) graficoBarra.destroy();
+            graficoBarra = new Chart(ctxBar, {
+                type: 'bar',
+                data: {
+                    labels: meses, datasets: [
+                        { label: 'Receitas', data: receitas, backgroundColor: '#10b981' },
+                        { label: 'Despesas', data: despesas, backgroundColor: '#ef4444' }
+                    ]
+                }
+            });
+        }
+        
+        let despPorCat = {};
+        transacoes.filter(t => t.tipo === 'despesa').forEach(t => {
+            despPorCat[t.categoria] = (despPorCat[t.categoria] || 0) + t.valor;
+        });
+        
+        const ctxPizza = document.getElementById('graficoPizza')?.getContext('2d');
+        if (ctxPizza) {
+            if (graficoPizza) graficoPizza.destroy();
+            graficoPizza = new Chart(ctxPizza, {
+                type: 'pie',
+                data: { labels: Object.keys(despPorCat), datasets: [{ data: Object.values(despPorCat), backgroundColor: ['#f59e0b', '#ef4444', '#8b5cf6', '#10b981'] }] }
+            });
+        }
+    }
+    
+    async function atualizarUltimasTransacoes() {
+        const tbody = document.querySelector('#ultimasTransacoes tbody');
+        if (tbody) {
+            tbody.innerHTML = '';
+            transacoes.slice(-5).reverse().forEach(t => {
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = t.data;
+                row.insertCell(1).textContent = t.descricao || t.categoria;
+                row.insertCell(2).textContent = t.categoria;
+                row.insertCell(3).innerHTML = `<strong>R$ ${t.valor.toFixed(2)}</strong>`;
+            });
+        }
+    }
+    
+    function gerarRelatorio(mes, ano) {
+        const filtradas = transacoes.filter(t => {
+            const d = new Date(t.data);
+            return d.getMonth() + 1 === mes && d.getFullYear() === ano;
+        });
+        
+        let rec = 0, desp = 0;
+        let html = `<h4>📊 Relatório - ${mes}/${ano}</h4>
+                   <div class="table-responsive">
+                   <table style="width:100%; border-collapse:collapse;">
+                    <thead><tr style="background:#064e3b; color:white;"><th style="padding:12px;">Data</th><th style="padding:12px;">Tipo</th><th style="padding:12px;">Categoria</th><th style="padding:12px;">Descrição</th><th style="padding:12px;">Valor</th></tr></thead>
+                    <tbody>`;
+        
+        if (filtradas.length === 0) {
+            html += `<tr><td colspan="5" style="text-align:center; padding:40px;">📭 Nenhuma transação encontrada para este período</td></tr>`;
+        } else {
+            filtradas.forEach(t => {
+                html += `<tr style="border-bottom:1px solid #e5e7eb;">
+                            <td style="padding:10px;">${t.data}</td>
+                            <td style="padding:10px;">${t.tipo === 'receita' ? '💰 Receita' : '📉 Despesa'}</td>
+                            <td style="padding:10px;">${t.categoria}</td>
+                            <td style="padding:10px;">${t.descricao || '-'}</td>
+                            <td style="padding:10px;">R$ ${t.valor.toFixed(2)}</td>
+                          </tr>`;
+                if (t.tipo === 'receita') rec += t.valor;
+                else desp += t.valor;
+            });
+        }
+        
+        html += `<tr style="font-weight:bold; background:#f3f4f6;"><td colspan="4" style="padding:12px;">TOTAIS</td>
+                   <td style="padding:12px;">
+                        Receitas: R$ ${rec.toFixed(2)}<br>
+                        Despesas: R$ ${desp.toFixed(2)}<br>
+                        <span style="color:${rec - desp >= 0 ? '#10b981' : '#ef4444'}; font-size:1.1em;">Saldo: R$ ${(rec - desp).toFixed(2)}</span>
+                    </td>
+                  </tr>
+                 </tbody>
+                </table>
+                </div>
+                <div style="margin-top:20px; text-align:right; font-size:12px; color:#666;">
+                     <i class="fas fa-church"></i> Relatório gerado pelo sistema CONBCD Finanças | ${new Date().toLocaleString()}
+                </div>`;
+        
+        const conteudoRelatorio = document.getElementById('conteudoRelatorio');
+        if (conteudoRelatorio) conteudoRelatorio.innerHTML = html;
+    }
+    
+    async function exportarBackup() {
+        showLoading('Gerando backup...');
+        try {
+            const todasTransacoes = [];
+            for (const igreja of todasIgrejas) {
+                const transacoesIgreja = await carregarTransacoes(igreja.id);
+                todasTransacoes.push(...transacoesIgreja);
+            }
+            
+            const dump = {
+                todasIgrejas: todasIgrejas,
+                igrejaAtualId: igrejaAtualId,
+                versao: "CONBCD-FINANCAS-v4.0-INDEXEDDB",
+                data: new Date().toISOString(),
+                totalIgrejas: todasIgrejas.length,
+                totalTransacoes: todasTransacoes.length,
+                tipoArmazenamento: "IndexedDB - Ilimitado"
+            };
+            
+            const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.download = `CONBCD_backup_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            alert(`✅ Backup completo gerado com sucesso!\n📊 Dados: ${dump.totalTransacoes} transações de ${dump.totalIgrejas} igrejas.\n💾 Capacidade: Armazenamento Ilimitado (IndexedDB)\n📁 Arquivo salvo na pasta de downloads.`);
+        } finally {
+            hideLoading();
+        }
+    }
+    
+    async function restaurarBackup(file) {
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            showLoading('Restaurando backup...');
+            try {
+                const data = JSON.parse(e.target.result);
+                if (data.todasIgrejas && data.igrejaAtualId !== undefined) {
+                    // Limpar banco atual
+                    const transaction = db.transaction(['igrejas', 'transacoes', 'categorias'], 'readwrite');
+                    transaction.objectStore('igrejas').clear();
+                    transaction.objectStore('transacoes').clear();
+                    transaction.objectStore('categorias').clear();
+                    
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // Restaurar dados
+                    todasIgrejas = data.todasIgrejas;
+                    igrejaAtualId = data.igrejaAtualId;
+                    await salvarIgrejas(todasIgrejas);
+                    
+                    // Restaurar transações
+                    for (const igreja of todasIgrejas) {
+                        if (igreja.transacoes && igreja.transacoes.length > 0) {
+                            await salvarTransacoes(igreja.id, igreja.transacoes);
+                        } else {
+                            const transacoesAntigas = await carregarTransacoes(igreja.id);
+                            if (transacoesAntigas.length > 0) {
+                                await salvarTransacoes(igreja.id, transacoesAntigas);
+                            }
+                        }
+                        
+                        if (igreja.categorias && igreja.categorias.length > 0) {
+                            await salvarCategorias(igreja.id, igreja.categorias);
+                        }
+                    }
+                    
+                    await carregarIgrejaAtual();
+                    atualizarSeletor();
+                    await atualizarInterface();
+                    await updateStorageDisplay();
+                    alert(`✅ Backup restaurado com sucesso!\n📊 ${data.totalTransacoes || 'Várias'} transações restauradas.\n💾 Armazenamento ilimitado ativo!`);
+                } else {
+                    throw new Error('Formato inválido');
+                }
+            } catch (error) {
+                console.error('Erro ao restaurar:', error);
+                alert('❌ Arquivo de backup inválido. Verifique o arquivo e tente novamente.');
+            } finally {
+                hideLoading();
+            }
+        };
+        reader.readAsText(file);
+    }
+    
+    // Funções de impressão (mantidas do código anterior)
     function imprimirRelatorio() {
         const conteudo = document.getElementById('conteudoRelatorio');
         if (!conteudo || !conteudo.innerHTML || conteudo.innerHTML.trim() === '' || conteudo.innerHTML.includes('Nenhuma transação encontrada para este período')) {
@@ -541,7 +1362,6 @@
         const igrejaAtual = todasIgrejas.find(i => i.id === igrejaAtualId);
         const nomeIgreja = igrejaAtual ? igrejaAtual.nome : 'CONBCD Finanças';
         
-        // Criar conteúdo para impressão
         const htmlContent = `
             <!DOCTYPE html>
             <html>
@@ -550,81 +1370,18 @@
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Relatório - ${nomeIgreja}</title>
                 <style>
-                    * {
-                        margin: 0;
-                        padding: 0;
-                        box-sizing: border-box;
-                    }
-                    body {
-                        font-family: 'Segoe UI', Arial, sans-serif;
-                        padding: 20px;
-                        background: white;
-                    }
-                    .print-container {
-                        max-width: 100%;
-                        margin: 0 auto;
-                    }
-                    .header {
-                        text-align: center;
-                        margin-bottom: 30px;
-                        padding-bottom: 20px;
-                        border-bottom: 2px solid #064e3b;
-                    }
-                    .header h1 {
-                        color: #064e3b;
-                        margin: 0 0 10px 0;
-                        font-size: 24px;
-                    }
-                    .header h2 {
-                        color: #047857;
-                        margin: 0 0 10px 0;
-                        font-size: 18px;
-                    }
-                    .header p {
-                        color: #666;
-                        margin: 5px 0;
-                        font-size: 12px;
-                    }
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        margin: 20px 0;
-                    }
-                    th, td {
-                        border: 1px solid #ddd;
-                        padding: 10px;
-                        text-align: left;
-                        font-size: 12px;
-                    }
-                    th {
-                        background-color: #064e3b;
-                        color: white;
-                        font-weight: bold;
-                    }
-                    .footer {
-                        text-align: center;
-                        margin-top: 50px;
-                        padding-top: 20px;
-                        border-top: 1px solid #ddd;
-                        font-size: 10px;
-                        color: #999;
-                    }
-                    .totals {
-                        margin-top: 20px;
-                        padding: 15px;
-                        background: #f3f4f6;
-                        border-radius: 5px;
-                        font-weight: bold;
-                    }
-                    @media print {
-                        body {
-                            padding: 0;
-                            margin: 0;
-                        }
-                        .no-print {
-                            display: none;
-                        }
-                    }
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; background: white; }
+                    .print-container { max-width: 100%; margin: 0 auto; }
+                    .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #064e3b; }
+                    .header h1 { color: #064e3b; margin: 0 0 10px 0; font-size: 24px; }
+                    .header h2 { color: #047857; margin: 0 0 10px 0; font-size: 18px; }
+                    .header p { color: #666; margin: 5px 0; font-size: 12px; }
+                    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+                    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 12px; }
+                    th { background-color: #064e3b; color: white; font-weight: bold; }
+                    .footer { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 10px; color: #999; }
+                    @media print { body { padding: 0; margin: 0; } }
                 </style>
             </head>
             <body>
@@ -633,29 +1390,19 @@
                         <h1>${nomeIgreja}</h1>
                         <h2>RELATÓRIO FINANCEIRO</h2>
                         <p>Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
-                        <p>Sistema CONBCD Finanças - Gestão Multi-Igrejas</p>
+                        <p>Sistema CONBCD Finanças - Armazenamento Ilimitado</p>
                     </div>
-                    <div class="content">
-                        ${conteudo.innerHTML}
-                    </div>
+                    <div class="content">${conteudo.innerHTML}</div>
                     <div class="footer">
                         <p>Documento gerado eletronicamente pelo sistema CONBCD Finanças</p>
                         <p>© ${new Date().getFullYear()} CONBCD - Todos os direitos reservados</p>
                     </div>
                 </div>
-                <script>
-                    // Auto-print após carregar
-                    window.onload = function() {
-                        setTimeout(function() {
-                            window.print();
-                        }, 500);
-                    };
-                <\/script>
+                <script>window.onload = function() { setTimeout(function() { window.print(); }, 500); };<\/script>
             </body>
             </html>
         `;
         
-        // Criar modal para exibir o conteúdo e imprimir
         const modal = document.createElement('div');
         modal.className = 'print-modal';
         modal.innerHTML = `
@@ -677,19 +1424,16 @@
         
         document.body.appendChild(modal);
         
-        // Configurar o iframe com o conteúdo
         const iframe = document.getElementById('printFrame');
         const iframeDoc = iframe.contentWindow.document || iframe.contentDocument;
         iframeDoc.open();
         iframeDoc.write(htmlContent);
         iframeDoc.close();
         
-        // Botão de imprimir
         document.getElementById('confirmPrintBtn').onclick = function() {
             try {
                 iframe.contentWindow.print();
-            } catch(e) {
-                // Fallback: criar nova janela
+            } catch (e) {
                 const win = window.open('', '_blank');
                 win.document.write(htmlContent);
                 win.document.close();
@@ -697,17 +1441,12 @@
             }
         };
         
-        // Botão de fechar
         document.getElementById('closePrintModal').onclick = function() {
             modal.remove();
         };
         
         return true;
     }
-
-    // ============================================
-    // FUNÇÃO PARA GERAR PDF PROFISSIONAL
-    // ============================================
     
     async function gerarPDFProfissional() {
         const conteudo = document.getElementById('conteudoRelatorio');
@@ -734,9 +1473,7 @@
                 <p style="color: #666; margin: 5px 0;">Gerado em: ${dataAtual}</p>
                 <p style="color: #666; margin: 5px 0;">Sistema CONBCD Finanças - Gestão Multi-Igrejas</p>
             </div>
-            <div style="margin: 30px 0;">
-                ${conteudo.innerHTML}
-            </div>
+            <div style="margin: 30px 0;">${conteudo.innerHTML}</div>
             <div style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; font-size: 12px; color: #999;">
                 <p>Documento gerado eletronicamente pelo sistema CONBCD Finanças</p>
                 <p>© ${new Date().getFullYear()} CONBCD - Todos os direitos reservados</p>
@@ -745,7 +1482,7 @@
         
         const opt = {
             margin: [0.5, 0.5, 0.5, 0.5],
-            filename: `Relatorio_${nomeIgreja}_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.pdf`,
+            filename: `Relatorio_${nomeIgreja}_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true, logging: false },
             jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
@@ -767,10 +1504,6 @@
             btnPDF.disabled = false;
         }
     }
-
-    // ============================================
-    // FUNÇÃO DO RELATÓRIO AVANÇADO
-    // ============================================
     
     async function gerarRelatorioAvancado() {
         if (!transacoes || transacoes.length === 0) {
@@ -782,8 +1515,7 @@
         if (!ano) return;
         
         const anoNum = parseInt(ano);
-        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
         
         const relatorio = {};
         for (let i = 1; i <= 12; i++) {
@@ -831,7 +1563,6 @@
                     <p><i class="fas fa-church"></i> ${nomeIgreja}</p>
                     <hr style="margin:15px 0;">
                 </div>
-                
                 <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:15px; margin-bottom:30px;">
                     <div style="background:linear-gradient(135deg,#10b981,#059669); padding:15px; border-radius:15px; color:white; text-align:center;">
                         <i class="fas fa-arrow-up" style="font-size:24px;"></i>
@@ -849,7 +1580,6 @@
                         <p style="font-size:22px; font-weight:bold;">R$ ${(totalReceitasAno - totalDespesasAno).toFixed(2)}</p>
                     </div>
                 </div>
-                
                 <h3><i class="fas fa-chart-line"></i> Análise Mensal</h3>
                 <div style="overflow-x:auto;">
                     <table style="width:100%; border-collapse:collapse; margin-top:15px;">
@@ -860,10 +1590,9 @@
                                 <th style="padding:12px;">Despesas</th>
                                 <th style="padding:12px;">Saldo</th>
                                 <th style="padding:12px;">% Margem</th>
-                              </tr>
+                             </tr>
                         </thead>
-                        <tbody>
-        `;
+                        <tbody>`;
         
         for (let i = 1; i <= 12; i++) {
             const rec = relatorio[i].receitas;
@@ -873,51 +1602,35 @@
             const corSaldo = saldo >= 0 ? '#10b981' : '#ef4444';
             const destaque = (rec > 0 || desp > 0) ? 'background:#f0fdf4;' : '';
             
-            html += `
-                <tr style="border-bottom:1px solid #e5e7eb; ${destaque}">
-                    <td style="padding:10px;"><strong>${meses[i-1]}</strong></td>
-                    <td style="padding:10px; color:#10b981;">R$ ${rec.toFixed(2)}</td>
-                    <td style="padding:10px; color:#ef4444;">R$ ${desp.toFixed(2)}</td>
-                    <td style="padding:10px; color:${corSaldo};">R$ ${saldo.toFixed(2)}</td>
-                    <td style="padding:10px;">${margem}%</td>
-                </tr>
-            `;
+            html += `<tr style="border-bottom:1px solid #e5e7eb; ${destaque}">
+                        <td style="padding:10px;"><strong>${meses[i - 1]}</strong></td>
+                        <td style="padding:10px; color:#10b981;">R$ ${rec.toFixed(2)}</td>
+                        <td style="padding:10px; color:#ef4444;">R$ ${desp.toFixed(2)}</td>
+                        <td style="padding:10px; color:${corSaldo};">R$ ${saldo.toFixed(2)}</td>
+                        <td style="padding:10px;">${margem}%</td>
+                      </tr>`;
         }
         
         html += `
                         </tbody>
                     </table>
                 </div>
-                
                 <div style="margin-top:30px; text-align:center; padding:15px; background:#fef3c7; border-radius:15px;">
                     <small><i class="fas fa-calendar-alt"></i> Relatório gerado em ${new Date().toLocaleString()}</small>
                 </div>
             </div>
         `;
         
-        // Criar modal
         const modal = document.createElement('div');
-        modal.style.cssText = `
-            position:fixed; top:0; left:0; width:100%; height:100%; 
-            background:rgba(0,0,0,0.8); z-index:10001; 
-            display:flex; align-items:center; justify-content:center;
-            overflow:auto;
-        `;
-        
+        modal.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10001; display:flex; align-items:center; justify-content:center; overflow:auto;`;
         modal.innerHTML = `
             <div style="background:white; border-radius:25px; max-width:95%; max-height:95%; overflow:auto; margin:20px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
                 <div style="position:sticky; top:0; background:linear-gradient(135deg,#064e3b,#047857); color:white; padding:15px 25px; border-radius:25px 25px 0 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
                     <h3 style="margin:0;"><i class="fas fa-chart-line"></i> Relatório Avançado ${ano}</h3>
                     <div>
-                        <button id="imprimirAvancadoBtn" style="background:white; color:#064e3b; margin-right:10px;">
-                            <i class="fas fa-print"></i> Imprimir
-                        </button>
-                        <button id="pdfAvancadoBtn" style="background:white; color:#064e3b; margin-right:10px;">
-                            <i class="fas fa-file-pdf"></i> PDF
-                        </button>
-                        <button id="fecharModalBtn" style="background:#dc2626; border:none; color:white; font-size:18px; cursor:pointer; padding:8px 15px;">
-                            <i class="fas fa-times"></i> Fechar
-                        </button>
+                        <button id="imprimirAvancadoBtn" style="background:white; color:#064e3b; margin-right:10px;"><i class="fas fa-print"></i> Imprimir</button>
+                        <button id="pdfAvancadoBtn" style="background:white; color:#064e3b; margin-right:10px;"><i class="fas fa-file-pdf"></i> PDF</button>
+                        <button id="fecharModalBtn" style="background:#dc2626; border:none; color:white; font-size:18px; cursor:pointer; padding:8px 15px;"><i class="fas fa-times"></i> Fechar</button>
                     </div>
                 </div>
                 <div id="conteudoRelatorioModal" style="padding:25px;">${html}</div>
@@ -929,16 +1642,7 @@
         document.getElementById('imprimirAvancadoBtn')?.addEventListener('click', () => {
             const conteudoModal = document.getElementById('conteudoRelatorioModal').innerHTML;
             const printWindow = window.open('', '_blank');
-            printWindow.document.write(`
-                <html><head><title>Relatório Avançado</title>
-                <style>
-                    body { font-family: Arial; padding: 40px; }
-                    table { border-collapse: collapse; width: 100%; }
-                    th, td { border: 1px solid #ddd; padding: 8px; }
-                    th { background: #064e3b; color: white; }
-                </style>
-                </head><body>${conteudoModal}</body></html>
-            `);
+            printWindow.document.write(`<html><head><title>Relatório Avançado</title><style>body { font-family: Arial; padding: 40px; } table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid #ddd; padding: 8px; } th { background: #064e3b; color: white; }</style></head><body>${conteudoModal}</body></html>`);
             printWindow.document.close();
             printWindow.print();
         });
@@ -946,30 +1650,12 @@
         document.getElementById('pdfAvancadoBtn')?.addEventListener('click', async () => {
             const conteudoModal = document.getElementById('conteudoRelatorioModal');
             const pdfContent = document.createElement('div');
-            pdfContent.innerHTML = `
-                <div style="padding:40px; font-family:Arial;">
-                    <div style="text-align:center; margin-bottom:40px;">
-                        <h1 style="color:#064e3b;">${nomeIgreja}</h1>
-                        <h2 style="color:#047857;">RELATÓRIO AVANÇADO ${ano}</h2>
-                        <p>Gerado em: ${new Date().toLocaleString()}</p>
-                    </div>
-                    ${conteudoModal.innerHTML}
-                </div>
-            `;
-            
-            const opt = {
-                margin: [0.5, 0.5, 0.5, 0.5],
-                filename: `Relatorio_Avancado_${nomeIgreja}_${ano}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-            };
-            
+            pdfContent.innerHTML = `<div style="padding:40px; font-family:Arial;"><div style="text-align:center; margin-bottom:40px;"><h1 style="color:#064e3b;">${nomeIgreja}</h1><h2 style="color:#047857;">RELATÓRIO AVANÇADO ${ano}</h2><p>Gerado em: ${new Date().toLocaleString()}</p></div>${conteudoModal.innerHTML}</div>`;
+            const opt = { margin: [0.5, 0.5, 0.5, 0.5], filename: `Relatorio_Avancado_${nomeIgreja}_${ano}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
             const btnPDF = document.getElementById('pdfAvancadoBtn');
             const textoOriginal = btnPDF.innerHTML;
             btnPDF.innerHTML = '<i class="fas fa-spinner fa-pulse"></i>';
             btnPDF.disabled = true;
-            
             try {
                 await html2pdf().set(opt).from(pdfContent).save();
                 alert('✅ PDF gerado com sucesso!');
@@ -983,394 +1669,18 @@
         
         document.getElementById('fecharModalBtn')?.addEventListener('click', () => modal.remove());
     }
-
-    // ============================================
-    // FUNÇÕES PRINCIPAIS DO APP
-    // ============================================
-    
-    function carregarDados() {
-        const saved = localStorage.getItem("conbcd_financas_igrejas");
-        const savedAtual = localStorage.getItem("conbcd_financas_atual");
-        
-        if(saved) {
-            todasIgrejas = JSON.parse(saved);
-        } else {
-            todasIgrejas = [{
-                id: Date.now(),
-                nome: "Igreja Batista Casa de Deus",
-                endereco: "",
-                transacoes: [],
-                categorias: [
-                    { nome: "Dízimos", tipo: "receita" },
-                    { nome: "Ofertas", tipo: "receita" },
-                    { nome: "Eventos", tipo: "ambos" },
-                    { nome: "Manutenção", tipo: "despesa" },
-                    { nome: "Salários", tipo: "despesa" },
-                    { nome: "Material", tipo: "despesa" },
-                    { nome: "Missões", tipo: "receita" }
-                ]
-            }];
-        }
-        
-        if(savedAtual) {
-            igrejaAtualId = parseInt(savedAtual);
-            if(!todasIgrejas.find(i => i.id === igrejaAtualId)) {
-                igrejaAtualId = todasIgrejas[0].id;
-            }
-        } else {
-            igrejaAtualId = todasIgrejas[0].id;
-        }
-        
-        carregarIgrejaAtual();
-        atualizarSeletor();
-        atualizarInterface();
-    }
-    
-    function carregarIgrejaAtual() {
-        const igreja = todasIgrejas.find(i => i.id === igrejaAtualId);
-        if(igreja) {
-            transacoes = igreja.transacoes || [];
-            categorias = igreja.categorias || [];
-            if(!categorias.length) categorias = [{ nome: "Dízimos", tipo: "receita" }];
-        }
-    }
-    
-    function salvarIgrejaAtual() {
-        const index = todasIgrejas.findIndex(i => i.id === igrejaAtualId);
-        if(index !== -1) {
-            todasIgrejas[index].transacoes = transacoes;
-            todasIgrejas[index].categorias = categorias;
-        }
-        localStorage.setItem("conbcd_financas_igrejas", JSON.stringify(todasIgrejas));
-        localStorage.setItem("conbcd_financas_atual", igrejaAtualId);
-    }
-    
-    function atualizarSeletor() {
-        const select = document.getElementById('seletorIgreja');
-        if(!select) return;
-        select.innerHTML = '';
-        todasIgrejas.forEach(igreja => {
-            const option = document.createElement('option');
-            option.value = igreja.id;
-            option.textContent = `${igreja.nome} ${igreja.id === igrejaAtualId ? '✓' : ''}`;
-            if(igreja.id === igrejaAtualId) option.selected = true;
-            select.appendChild(option);
-        });
-    }
-    
-    function trocarIgreja(id) {
-        if(id == igrejaAtualId) return;
-        salvarIgrejaAtual();
-        igrejaAtualId = parseInt(id);
-        carregarIgrejaAtual();
-        atualizarInterface();
-        atualizarSeletor();
-    }
-    
-    function adicionarIgreja(nome, endereco) {
-        if(!nome.trim()) return alert('Informe o nome da igreja');
-        todasIgrejas.push({
-            id: Date.now(),
-            nome: nome.trim(),
-            endereco: endereco || "",
-            transacoes: [],
-            categorias: [{ nome: "Dízimos", tipo: "receita" }, { nome: "Ofertas", tipo: "receita" }]
-        });
-        salvarIgrejaAtual();
-        atualizarSeletor();
-        renderizarListaIgrejas();
-        alert(`✅ Igreja "${nome}" adicionada com sucesso!`);
-    }
-    
-    function excluirIgreja(id) {
-        if(todasIgrejas.length <= 1) return alert('❌ Não é possível excluir a única igreja.');
-        if(confirm('Excluir esta igreja e todos os seus dados financeiros?')) {
-            todasIgrejas = todasIgrejas.filter(i => i.id !== id);
-            if(igrejaAtualId === id) {
-                igrejaAtualId = todasIgrejas[0].id;
-                carregarIgrejaAtual();
-            }
-            salvarIgrejaAtual();
-            atualizarSeletor();
-            renderizarListaIgrejas();
-            atualizarInterface();
-            alert('✅ Igreja excluída com sucesso!');
-        }
-    }
-    
-    function renderizarListaIgrejas() {
-        const container = document.getElementById('listaIgrejas');
-        if(!container) return;
-        container.innerHTML = '<h4>📌 Igrejas Cadastradas</h4>';
-        todasIgrejas.forEach(igreja => {
-            const div = document.createElement('div');
-            div.className = 'categoria-item';
-            div.innerHTML = `
-                <span><strong>${igreja.nome}</strong> ${igreja.id === igrejaAtualId ? '(ATUAL)' : ''}<br>
-                <small>${igreja.endereco || 'Sem endereço'} | Transações: ${(igreja.transacoes || []).length}</small></span>
-                <button onclick="excluirIgreja(${igreja.id})" style="background:#ef4444;">✖️</button>
-            `;
-            container.appendChild(div);
-        });
-    }
-    
-    function atualizarInterface() {
-        atualizarCards();
-        atualizarSelectCategorias();
-        renderizarTabela();
-        renderizarCategorias();
-        renderizarListaIgrejas();
-        renderizarGraficos();
-        atualizarUltimasTransacoes();
-    }
-    
-    function atualizarCards() {
-        let totalRec = 0, totalDesp = 0;
-        transacoes.forEach(t => {
-            if(t.tipo === 'receita') totalRec += t.valor;
-            else totalDesp += t.valor;
-        });
-        document.getElementById('totalReceitas').innerHTML = `R$ ${totalRec.toFixed(2)}`;
-        document.getElementById('totalDespesas').innerHTML = `R$ ${totalDesp.toFixed(2)}`;
-        document.getElementById('saldoTotal').innerHTML = `R$ ${(totalRec - totalDesp).toFixed(2)}`;
-    }
-    
-    function atualizarSelectCategorias() {
-        const select = document.getElementById('categoriaSelect');
-        if(!select) return;
-        select.innerHTML = '';
-        categorias.forEach(cat => {
-            const opt = document.createElement('option');
-            opt.value = cat.nome;
-            opt.textContent = `${cat.nome} (${cat.tipo})`;
-            select.appendChild(opt);
-        });
-    }
-    
-    function renderizarTabela() {
-        const tbody = document.querySelector('#tabelaTransacoes tbody');
-        if(!tbody) return;
-        tbody.innerHTML = '';
-        [...transacoes].reverse().forEach(t => {
-            const row = tbody.insertRow();
-            row.insertCell(0).textContent = t.data;
-            row.insertCell(1).innerHTML = `<span class="badge ${t.tipo === 'receita' ? 'badge-receita' : 'badge-despesa'}">${t.tipo === 'receita' ? 'Receita' : 'Despesa'}</span>`;
-            row.insertCell(2).textContent = t.categoria;
-            row.insertCell(3).textContent = t.descricao || '-';
-            row.insertCell(4).textContent = `R$ ${t.valor.toFixed(2)}`;
-            const acoes = row.insertCell(5);
-            const btnDel = document.createElement('button');
-            btnDel.innerHTML = '<i class="fas fa-trash"></i>';
-            btnDel.style.background = '#dc2626';
-            btnDel.onclick = () => {
-                if(confirm('Excluir transação?')) {
-                    transacoes = transacoes.filter(x => x.id !== t.id);
-                    salvarIgrejaAtual();
-                    atualizarInterface();
-                }
-            };
-            acoes.appendChild(btnDel);
-        });
-    }
-    
-    function renderizarCategorias() {
-        const container = document.getElementById('listaCategorias');
-        if(!container) return;
-        container.innerHTML = '<h4>📌 Categorias Disponíveis</h4>';
-        categorias.forEach((cat, idx) => {
-            const div = document.createElement('div');
-            div.className = 'categoria-item';
-            div.innerHTML = `<span><strong>${cat.nome}</strong> (${cat.tipo})</span>
-                           <button onclick="excluirCategoria(${idx})" style="background:#ef4444;">✖️</button>`;
-            container.appendChild(div);
-        });
-    }
-    
-    function excluirCategoria(idx) {
-        const catNome = categorias[idx].nome;
-        if(transacoes.some(t => t.categoria === catNome)) {
-            alert(`❌ Não é possível excluir "${catNome}" pois há transações vinculadas.`);
-        } else {
-            categorias.splice(idx, 1);
-            salvarIgrejaAtual();
-            atualizarInterface();
-        }
-    }
-    
-    let graficoBarra, graficoPizza;
-    function renderizarGraficos() {
-        const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-        let receitas = new Array(12).fill(0);
-        let despesas = new Array(12).fill(0);
-        
-        transacoes.forEach(t => {
-            const mes = new Date(t.data).getMonth();
-            if(t.tipo === 'receita') receitas[mes] += t.valor;
-            else despesas[mes] += t.valor;
-        });
-        
-        const ctxBar = document.getElementById('graficoMensal')?.getContext('2d');
-        if(ctxBar) {
-            if(graficoBarra) graficoBarra.destroy();
-            graficoBarra = new Chart(ctxBar, {
-                type: 'bar',
-                data: { labels: meses, datasets: [
-                    { label: 'Receitas', data: receitas, backgroundColor: '#10b981' },
-                    { label: 'Despesas', data: despesas, backgroundColor: '#ef4444' }
-                ]}
-            });
-        }
-        
-        let despPorCat = {};
-        transacoes.filter(t => t.tipo === 'despesa').forEach(t => {
-            despPorCat[t.categoria] = (despPorCat[t.categoria] || 0) + t.valor;
-        });
-        
-        const ctxPizza = document.getElementById('graficoPizza')?.getContext('2d');
-        if(ctxPizza) {
-            if(graficoPizza) graficoPizza.destroy();
-            graficoPizza = new Chart(ctxPizza, {
-                type: 'pie',
-                data: { labels: Object.keys(despPorCat), datasets: [{ data: Object.values(despPorCat), backgroundColor: ['#f59e0b','#ef4444','#8b5cf6','#10b981'] }] }
-            });
-        }
-    }
-    
-    function atualizarUltimasTransacoes() {
-        const tbody = document.querySelector('#ultimasTransacoes tbody');
-        if(tbody) {
-            tbody.innerHTML = '';
-            transacoes.slice(-5).reverse().forEach(t => {
-                const row = tbody.insertRow();
-                row.insertCell(0).textContent = t.data;
-                row.insertCell(1).textContent = t.descricao || t.categoria;
-                row.insertCell(2).textContent = t.categoria;
-                row.insertCell(3).innerHTML = `<strong>R$ ${t.valor.toFixed(2)}</strong>`;
-            });
-        }
-    }
-    
-    function gerarRelatorio(mes, ano) {
-        const filtradas = transacoes.filter(t => {
-            const d = new Date(t.data);
-            return d.getMonth() + 1 === mes && d.getFullYear() === ano;
-        });
-        
-        let rec = 0, desp = 0;
-        let html = `<h4>📊 Relatório - ${mes}/${ano}</h4>
-                   <div class="table-responsive">
-                   <table style="width:100%; border-collapse:collapse;">
-                    <thead><tr style="background:#064e3b; color:white;"><th style="padding:12px;">Data</th><th style="padding:12px;">Tipo</th><th style="padding:12px;">Categoria</th><th style="padding:12px;">Descrição</th><th style="padding:12px;">Valor</th></tr></thead>
-                    <tbody>`;
-        
-        if(filtradas.length === 0) {
-            html += `<tr><td colspan="5" style="text-align:center; padding:40px;">📭 Nenhuma transação encontrada para este período</td></tr>`;
-        } else {
-            filtradas.forEach(t => {
-                html += `<tr style="border-bottom:1px solid #e5e7eb;">
-                            <td style="padding:10px;">${t.data}</td>
-                            <td style="padding:10px;">${t.tipo === 'receita' ? '💰 Receita' : '📉 Despesa'}</td>
-                            <td style="padding:10px;">${t.categoria}</td>
-                            <td style="padding:10px;">${t.descricao || '-'}</td>
-                            <td style="padding:10px;">R$ ${t.valor.toFixed(2)}</td>
-                          </tr>`;
-                if(t.tipo === 'receita') rec += t.valor;
-                else desp += t.valor;
-            });
-        }
-        
-        html += `<tr style="font-weight:bold; background:#f3f4f6;"><td colspan="4" style="padding:12px;">TOTAIS</td>
-                   <td style="padding:12px;">
-                        Receitas: R$ ${rec.toFixed(2)}<br>
-                        Despesas: R$ ${desp.toFixed(2)}<br>
-                        <span style="color:${rec-desp>=0?'#10b981':'#ef4444'}; font-size:1.1em;">Saldo: R$ ${(rec-desp).toFixed(2)}</span>
-                    </td>
-                  </tr>
-                 </tbody>
-                </table>
-                </div>
-                <div style="margin-top:20px; text-align:right; font-size:12px; color:#666;">
-                     <i class="fas fa-church"></i> Relatório gerado pelo sistema CONBCD Finanças | ${new Date().toLocaleString()}
-                </div>`;
-        
-        const conteudoRelatorio = document.getElementById('conteudoRelatorio');
-        if(conteudoRelatorio) conteudoRelatorio.innerHTML = html;
-    }
-    
-    function exportarBackup() {
-        const dump = { 
-            todasIgrejas: todasIgrejas, 
-            igrejaAtualId: igrejaAtualId, 
-            versao: "CONBCD-FINANCAS-v3.0", 
-            data: new Date().toISOString(),
-            totalIgrejas: todasIgrejas.length,
-            totalTransacoes: transacoes.length
-        };
-        
-        const blob = new Blob([JSON.stringify(dump, null, 2)], {type: 'application/json'});
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.download = `CONBCD_backup_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        
-        alert(`✅ Backup completo gerado com sucesso!\n📊 Dados: ${dump.totalTransacoes} transações de ${dump.totalIgrejas} igrejas.\n📁 Arquivo salvo na pasta de downloads.`);
-    }
-    
-    function restaurarBackup(file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const data = JSON.parse(e.target.result);
-                if(data.todasIgrejas && data.igrejaAtualId !== undefined) {
-                    todasIgrejas = data.todasIgrejas;
-                    igrejaAtualId = data.igrejaAtualId;
-                    carregarIgrejaAtual();
-                    salvarIgrejaAtual();
-                    atualizarSeletor();
-                    atualizarInterface();
-                    alert(`✅ Backup restaurado com sucesso!\n📊 ${data.totalTransacoes || 'Várias'} transações restauradas.`);
-                } else {
-                    throw new Error('Formato inválido');
-                }
-            } catch(e) {
-                alert('❌ Arquivo de backup inválido. Verifique o arquivo e tente novamente.');
-            }
-        };
-        reader.readAsText(file);
-    }
-    
-    // PWA - Instalação
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        document.getElementById('installBanner').style.display = 'flex';
-    });
-    
-    document.getElementById('installBtn')?.addEventListener('click', async () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                document.getElementById('installBanner').style.display = 'none';
-            }
-            deferredPrompt = null;
-        }
-    });
     
     // Event Listeners
     document.getElementById('seletorIgreja')?.addEventListener('change', (e) => trocarIgreja(parseInt(e.target.value)));
     
-    document.getElementById('salvarTransacao')?.addEventListener('click', () => {
+    document.getElementById('salvarTransacao')?.addEventListener('click', async () => {
         const valor = parseFloat(document.getElementById('valorTransacao').value);
         const data = document.getElementById('dataTransacao').value;
-        if(isNaN(valor) || !data) return alert('Preencha valor e data');
+        if (isNaN(valor) || !data) return alert('Preencha valor e data');
         
         transacoes.push({
             id: Date.now(),
+            igrejaId: igrejaAtualId,
             tipo: document.getElementById('tipoTransacao').value,
             categoria: document.getElementById('categoriaSelect').value,
             valor: valor,
@@ -1380,21 +1690,21 @@
             dataCriacao: new Date().toISOString()
         });
         
-        salvarIgrejaAtual();
-        atualizarInterface();
+        await salvarIgrejaAtual();
+        await atualizarInterface();
         document.getElementById('valorTransacao').value = '';
         document.getElementById('descTransacao').value = '';
         document.getElementById('dataTransacao').value = '';
         alert('✅ Transação salva com sucesso!');
     });
     
-    document.getElementById('adicionarCategoria')?.addEventListener('click', () => {
+    document.getElementById('adicionarCategoria')?.addEventListener('click', async () => {
         const nome = document.getElementById('novaCategoriaNome').value.trim();
         const tipo = document.getElementById('tipoCategoria').value;
-        if(nome && !categorias.find(c => c.nome === nome)) {
+        if (nome && !categorias.find(c => c.nome === nome)) {
             categorias.push({ nome: nome, tipo: tipo });
-            salvarIgrejaAtual();
-            atualizarInterface();
+            await salvarIgrejaAtual();
+            await atualizarInterface();
             document.getElementById('novaCategoriaNome').value = '';
             alert('✅ Categoria adicionada!');
         } else {
@@ -1420,7 +1730,7 @@
     document.getElementById('exportarPDF')?.addEventListener('click', gerarPDFProfissional);
     document.getElementById('fazerBackup')?.addEventListener('click', exportarBackup);
     document.getElementById('restoreFile')?.addEventListener('change', (e) => {
-        if(e.target.files && e.target.files[0]) {
+        if (e.target.files && e.target.files[0]) {
             restaurarBackup(e.target.files[0]);
             e.target.value = '';
         }
@@ -1434,12 +1744,33 @@
             btn.classList.add('active');
             document.querySelectorAll('.panel').forEach(p => p.classList.remove('active-panel'));
             const panel = document.getElementById(btn.dataset.tab);
-            if(panel) panel.classList.add('active-panel');
+            if (panel) panel.classList.add('active-panel');
         });
     });
     
+    // PWA - Instalação
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        document.getElementById('installBanner').style.display = 'flex';
+    });
+    
+    document.getElementById('installBtn')?.addEventListener('click', async () => {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                document.getElementById('installBanner').style.display = 'none';
+            }
+            deferredPrompt = null;
+        }
+    });
+    
     // Inicialização
-    carregarDados();
+    (async function() {
+        await initDatabase();
+        await carregarDados();
+    })();
 </script>
 </body>
 </html>

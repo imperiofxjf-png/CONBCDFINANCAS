@@ -7,12 +7,17 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="CONBCD Finanças">
+    
+    <!-- PWA manifest gerado dinamicamente -->
+    <link rel="manifest" href="/manifest.json">
+    
     <title>CONBCD FINANÇAS | Gestão Financeira Multi-Igrejas</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        /* SEU CSS ORIGINAL PERMANECE IGUAL - não mexi */
         * {
             margin: 0;
             padding: 0;
@@ -531,6 +536,82 @@
 </div>
 
 <script>
+    // ==================== PWA: GERAR MANIFEST DINAMICAMENTE ====================
+    (function generateManifestAndServiceWorker() {
+        // 1. Criar manifest.json dinâmico
+        const manifestData = {
+            name: "CONBCD Finanças",
+            short_name: "CONBCD",
+            description: "Gestão Financeira Multi-Igrejas com armazenamento ilimitado",
+            start_url: "./",
+            display: "standalone",
+            theme_color: "#064e3b",
+            background_color: "#f0fdf4",
+            orientation: "portrait",
+            icons: [
+                {
+                    src: "https://placehold.co/192x192/064e3b/white?text=💰",
+                    sizes: "192x192",
+                    type: "image/png",
+                    purpose: "any maskable"
+                },
+                {
+                    src: "https://placehold.co/512x512/064e3b/white?text=💰",
+                    sizes: "512x512",
+                    type: "image/png",
+                    purpose: "any maskable"
+                }
+            ]
+        };
+
+        // Salvar manifest no localStorage para servir via blob URL
+        const manifestBlob = new Blob([JSON.stringify(manifestData)], {type: "application/json"});
+        const manifestURL = URL.createObjectURL(manifestBlob);
+        
+        // Substituir link do manifest
+        let manifestLink = document.querySelector('link[rel="manifest"]');
+        if (manifestLink) {
+            manifestLink.href = manifestURL;
+        } else {
+            const link = document.createElement('link');
+            link.rel = 'manifest';
+            link.href = manifestURL;
+            document.head.appendChild(link);
+        }
+
+        // 2. Service Worker simples (para tornar instalável)
+        const swCode = `
+            self.addEventListener('install', event => {
+                console.log('[Service Worker] Instalado');
+                self.skipWaiting();
+            });
+            self.addEventListener('activate', event => {
+                console.log('[Service Worker] Ativado');
+                event.waitUntil(clients.claim());
+            });
+            self.addEventListener('fetch', event => {
+                // Estratégia: network first (não interfere com IndexedDB)
+                event.respondWith(
+                    fetch(event.request).catch(() => {
+                        return caches.match(event.request);
+                    })
+                );
+            });
+        `;
+
+        const swBlob = new Blob([swCode], {type: "application/javascript"});
+        const swURL = URL.createObjectURL(swBlob);
+
+        // Registrar Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register(swURL).then(reg => {
+                console.log('Service Worker registrado com sucesso:', reg);
+            }).catch(err => {
+                console.log('Falha ao registrar Service Worker:', err);
+            });
+        }
+    })();
+
     // ============================================
     // APP COM INDEXEDDB - ARMAZENAMENTO ILIMITADO
     // ============================================
@@ -1225,7 +1306,7 @@
         let html = `<h4>📊 Relatório - ${mes}/${ano}</h4>
                    <div class="table-responsive">
                    <table style="width:100%; border-collapse:collapse;">
-                    <thead><tr style="background:#064e3b; color:white;"><th style="padding:12px;">Data</th><th style="padding:12px;">Tipo</th><th style="padding:12px;">Categoria</th><th style="padding:12px;">Descrição</th><th style="padding:12px;">Valor</th></tr></thead>
+                    <thead><tr style="background:#064e3b; color:white;"><th style="padding:12px;">Data</th><th style="padding:12px;">Tipo</th><th style="padding:12px;">Categoria</th><th style="padding:12px;">Descrição</th><th style="padding:12px;">Valor</th> </tr></thead>
                     <tbody>`;
         
         if (filtradas.length === 0) {
@@ -1238,7 +1319,7 @@
                             <td style="padding:10px;">${t.categoria}</td>
                             <td style="padding:10px;">${t.descricao || '-'}</td>
                             <td style="padding:10px;">R$ ${t.valor.toFixed(2)}</td>
-                          </tr>`;
+                           </tr>`;
                 if (t.tipo === 'receita') rec += t.valor;
                 else desp += t.valor;
             });
@@ -1249,10 +1330,10 @@
                         Receitas: R$ ${rec.toFixed(2)}<br>
                         Despesas: R$ ${desp.toFixed(2)}<br>
                         <span style="color:${rec - desp >= 0 ? '#10b981' : '#ef4444'}; font-size:1.1em;">Saldo: R$ ${(rec - desp).toFixed(2)}</span>
-                    </td>
-                  </tr>
+                     </td>
+                   </tr>
                  </tbody>
-                </table>
+               </table>
                 </div>
                 <div style="margin-top:20px; text-align:right; font-size:12px; color:#666;">
                      <i class="fas fa-church"></i> Relatório gerado pelo sistema CONBCD Finanças | ${new Date().toLocaleString()}
@@ -1590,7 +1671,7 @@
                                 <th style="padding:12px;">Despesas</th>
                                 <th style="padding:12px;">Saldo</th>
                                 <th style="padding:12px;">% Margem</th>
-                             </tr>
+                              </tr>
                         </thead>
                         <tbody>`;
         
@@ -1773,4 +1854,4 @@
     })();
 </script>
 </body>
-        </html>
+    </html>

@@ -3,1774 +3,2146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <meta name="theme-color" content="#064e3b">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="CONBCD Finanças">
-    <title>CONBCD FINANÇAS | Gestão Financeira Multi-Igrejas</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Império FX JF - Gestão Financeira do Trader</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', 'Poppins', 'Roboto', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
         body {
-            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
             min-height: 100vh;
             padding: 20px;
+            color: #e0e0e0;
+            transition: all 0.3s;
         }
-
+        body.light-mode {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            color: #1a1f3a;
+        }
         .container {
             max-width: 1600px;
             margin: 0 auto;
         }
-
-        .header-institucional {
-            background: linear-gradient(135deg, #064e3b 0%, #047857 100%);
-            color: white;
-            padding: 25px 35px;
-            border-radius: 25px;
+        .header {
+            text-align: center;
             margin-bottom: 30px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .header-institucional::before {
-            content: "💰";
-            position: absolute;
-            font-size: 180px;
-            right: -30px;
-            bottom: -50px;
-            opacity: 0.08;
-            pointer-events: none;
-        }
-
-        .logo-area {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-
-        .logo-area h1 {
-            font-size: 2.2rem;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .igreja-selector {
-            background: rgba(255,255,255,0.15);
-            padding: 10px 18px;
-            border-radius: 15px;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
             backdrop-filter: blur(10px);
         }
-
-        .igreja-selector select {
-            padding: 8px 15px;
-            border-radius: 10px;
-            border: none;
-            background: white;
-            font-weight: 600;
-            color: #064e3b;
-            cursor: pointer;
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
         }
-
-        .dashboard-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 22px;
-            margin-bottom: 30px;
-        }
-
-        .card-modern {
-            background: white;
-            border-radius: 20px;
-            padding: 22px;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-            border-left: 5px solid;
-            cursor: pointer;
-        }
-
-        .card-receita { border-left-color: #10b981; }
-        .card-despesa { border-left-color: #ef4444; }
-        .card-saldo { border-left-color: #3b82f6; }
-
-        .card-modern h4 {
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            color: #6b7280;
-            margin-bottom: 12px;
-        }
-
-        .card-modern .valor-grande {
-            font-size: 2rem;
-            font-weight: bold;
-        }
-
-        .tabs-system {
-            background: white;
-            border-radius: 20px;
-            padding: 5px;
-            margin-bottom: 25px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-        }
-
-        .tab-btn {
-            flex: 1;
-            padding: 14px 20px;
-            border: none;
-            background: transparent;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 15px;
-            transition: all 0.3s;
-            color: #4b5563;
-        }
-
-        .tab-btn.active {
-            background: linear-gradient(135deg, #064e3b, #047857);
-            color: white;
-        }
-
-        .panel {
-            display: none;
-            background: white;
-            border-radius: 25px;
-            padding: 28px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            animation: fadeIn 0.4s ease;
-        }
-
-        .panel.active-panel {
+        .header h1 small {
+            font-size: 0.5em;
             display: block;
+            color: #ffd700;
+            background: none;
+            -webkit-background-clip: unset;
+            background-clip: unset;
+            margin-top: 5px;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .header p {
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            opacity: 0.8;
         }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 18px;
-            margin-bottom: 25px;
-            background: #f9fafb;
-            padding: 20px;
-            border-radius: 20px;
-        }
-
-        .input-field {
+        
+        /* BARRA DE MENUS PROFISSIONAL */
+        .menu-bar {
             display: flex;
-            flex-direction: column;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
         }
-
-        .input-field label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 6px;
+        
+        .menu-group {
+            display: flex;
+            gap: 8px;
+            padding: 0 10px;
+            border-right: 1px solid rgba(255, 215, 0, 0.3);
         }
-
-        .input-field input, .input-field select {
-            padding: 10px 14px;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            font-size: 0.9rem;
-            transition: all 0.2s;
+        
+        .menu-group:last-child {
+            border-right: none;
         }
-
-        button {
-            padding: 10px 20px;
-            border-radius: 12px;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: #047857;
+        
+        .menu-btn {
+            padding: 10px 12px;
+            font-size: 0.85em;
+            margin: 0;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .menu-btn i, .menu-btn span {
+            font-size: 1.1em;
+        }
+        
+        .btn-theme {
+            background: linear-gradient(135deg, #6c63ff, #3f3a91);
             color: white;
         }
-
+        
+        .btn-excel {
+            background: linear-gradient(135deg, #1e8449, #145a32);
+            color: white;
+        }
+        
+        .btn-pdf {
+            background: linear-gradient(135deg, #cb4335, #922b21);
+            color: white;
+        }
+        
+        .btn-word {
+            background: linear-gradient(135deg, #2471a3, #1a5276);
+            color: white;
+        }
+        
+        .btn-print {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+        }
+        
+        .btn-backup {
+            background: linear-gradient(135deg, #17a589, #117864);
+            color: white;
+        }
+        
+        .btn-import {
+            background: linear-gradient(135deg, #e67e22, #ca6f1e);
+            color: white;
+        }
+        
+        .btn-reset {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        
+        .menu-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+        
+        @media (max-width: 768px) {
+            .menu-bar {
+                flex-direction: column;
+                align-items: center;
+            }
+            .menu-group {
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+                padding: 10px;
+                width: 100%;
+                justify-content: center;
+            }
+            .menu-group:last-child {
+                border-bottom: none;
+            }
+            .menu-btn {
+                padding: 8px 12px;
+                font-size: 0.8em;
+            }
+            .header h1 {
+                font-size: 1.8em;
+            }
+            .header h1 small {
+                font-size: 0.45em;
+            }
+        }
+        
+        .card {
+            background: rgba(30, 35, 58, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,215,0,0.2);
+        }
+        .light-mode .card {
+            background: rgba(255,255,255,0.95);
+            border-color: #ffd700;
+        }
+        .card-title {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #ffd700;
+            border-left: 4px solid #ffd700;
+            padding-left: 12px;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 20px;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #ccc;
+        }
+        .light-mode label {
+            color: #333;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(20, 25, 45, 0.9);
+            border: 1px solid #3a3f5e;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        .light-mode input, .light-mode select, .light-mode textarea {
+            background: white;
+            color: #333;
+            border-color: #ddd;
+        }
+        input:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255,215,0,0.3);
+        }
+        input:read-only {
+            background: rgba(255,215,0,0.1);
+            cursor: not-allowed;
+        }
+        button {
+            background: linear-gradient(135deg, #ffd700, #ff8c00);
+            color: #0a0e27;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-size: 1em;
+            margin: 5px;
+        }
         button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 20px rgba(255,215,0,0.4);
         }
-
+        .btn-success {
+            background: linear-gradient(135deg, #4caf50, #45a049);
+        }
         .btn-danger {
-            background: #dc2626;
+            background: linear-gradient(135deg, #ff4444, #cc0000);
         }
-
-        .btn-secondary {
-            background: linear-gradient(135deg, #6b7280, #4b5563);
+        .btn-info {
+            background: linear-gradient(135deg, #2196f3, #1976d2);
         }
-
-        .btn-print {
-            background: linear-gradient(135deg, #2563eb, #1e40af);
+        .btn-warning {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
         }
-
+        .btn-account {
+            background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+        }
+        .btn-calc {
+            background: linear-gradient(135deg, #00acc1, #00838f);
+            color: white;
+        }
         .table-responsive {
             overflow-x: auto;
-            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
         }
-
-        th {
-            background: #f3f4f6;
-            padding: 14px 12px;
+        th, td {
+            padding: 10px;
             text-align: left;
-            font-weight: 600;
+            border-bottom: 1px solid #3a3f5e;
+            font-size: 0.9em;
         }
-
-        td {
-            padding: 12px;
-            border-bottom: 1px solid #e5e7eb;
-        }
-
-        .badge {
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .badge-receita { background: #d1fae5; color: #065f46; }
-        .badge-despesa { background: #fee2e2; color: #991b1b; }
-
-        .charts-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 25px;
-            margin: 25px 0;
-        }
-
-        .chart-box {
-            background: #f9fafb;
-            padding: 20px;
-            border-radius: 20px;
-        }
-
-        .categoria-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            background: #eef2ff;
-            padding: 8px 16px;
-            border-radius: 40px;
-            margin: 5px;
-        }
-
-        .storage-status {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #064e3b;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            z-index: 1000;
-            cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-            transition: all 0.3s;
-        }
-
-        .storage-status.ready {
-            background: #10b981;
-        }
-
-        .install-banner {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 12px 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .install-banner button {
-            background: white;
-            color: #764ba2;
-        }
-
-        .print-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 20000;
-            display: flex;
-            flex-direction: column;
-            overflow: auto;
-        }
-
-        .print-modal-header {
-            background: linear-gradient(135deg, #064e3b, #047857);
-            color: white;
-            padding: 15px 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        th {
+            background: rgba(255,215,0,0.1);
+            color: #ffd700;
             position: sticky;
             top: 0;
-            z-index: 20001;
         }
-
-        .print-modal-content {
-            background: white;
-            margin: 20px;
+        tr:hover {
+            background: rgba(255,215,0,0.05);
+        }
+        .profit-positive {
+            color: #4caf50;
+            font-weight: bold;
+        }
+        .profit-negative {
+            color: #ff5252;
+            font-weight: bold;
+        }
+        .withdraw-negative {
+            color: #ff5252;
+        }
+        .deposit-positive {
+            color: #4caf50;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            background: rgba(0,0,0,0.4);
+            padding: 15px;
             border-radius: 15px;
-            padding: 30px;
-            overflow: auto;
-            flex: 1;
-        }
-
-        .print-btn-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        .close-print-btn {
-            background: #dc2626;
-            border: none;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            padding: 8px 20px;
-            border-radius: 10px;
-        }
-
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 99999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 18px;
-        }
-
-        .loading-content {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            color: #064e3b;
             text-align: center;
         }
-
+        .metric-card h4 {
+            font-size: 0.85em;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+        .metric-card .value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
+        }
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .hedge-calc-result, .grid-calc-result {
+            background: rgba(0,0,0,0.5);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        .hedge-lotes-destaque, .grid-lotes-destaque {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ffd700;
+            margin: 10px 0;
+        }
+        .operation-list {
+            max-height: 250px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        .operation-item {
+            background: rgba(255,215,0,0.1);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .separator-inputs {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .separator-inputs .form-group {
+            flex: 1;
+        }
+        .separator-inputs-4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .account-selector {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .account-selector select {
+            flex: 2;
+            min-width: 200px;
+        }
+        .account-selector input {
+            flex: 2;
+            min-width: 150px;
+        }
+        .account-selector button {
+            margin: 0;
+        }
+        .compound-interest-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 10px;
+        }
+        .compound-result {
+            background: rgba(76,175,80,0.2);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        .compound-result .main-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+        .compound-result .detail-value {
+            font-size: 1.2em;
+            color: #4caf50;
+        }
+        #fileInput {
+            display: none;
+        }
+        .grid-info-table {
+            width: 100%;
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        .grid-info-table td {
+            padding: 8px;
+            border-bottom: 1px solid rgba(255,215,0,0.2);
+        }
+        .storage-status {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.7em;
+            z-index: 1000;
+            cursor: pointer;
+        }
+        .storage-status:hover {
+            background: rgba(0,0,0,0.9);
+        }
+        
+        /* MELHORIA DE LEGIBILIDADE - Cores com maior contraste */
+        .text-highlight {
+            color: #ffd700;
+            font-weight: 600;
+            text-shadow: 0 0 2px rgba(0,0,0,0.5);
+        }
+        
+        .info-number {
+            color: #00e5ff;
+            font-weight: 600;
+            background: rgba(0,0,0,0.4);
+            padding: 2px 6px;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        
+        .info-text {
+            color: #e0e0e0;
+            font-weight: 500;
+        }
+        
+        .light-mode .info-number {
+            background: rgba(0,0,0,0.1);
+            color: #0066cc;
+        }
+        
+        .light-mode .info-text {
+            color: #333;
+        }
+        
+        /* Estilos para impressão */
         @media print {
-            .no-print { display: none; }
-            .print-modal { display: none !important; }
-            body { padding: 0; margin: 0; }
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+                color: black;
+            }
+            body.light-mode {
+                background: white;
+            }
+            .menu-bar, .storage-status, button, .menu-btn, .btn-print, 
+            .account-selector button, #tradeForm button, .btn-calc,
+            .btn-success, .btn-danger, .btn-info, .btn-warning, .btn-account {
+                display: none !important;
+            }
+            .card {
+                background: white;
+                border: 1px solid #ccc;
+                box-shadow: none;
+                page-break-inside: avoid;
+            }
+            .card-title {
+                color: #d4a000;
+                border-left-color: #d4a000;
+            }
+            .profit-positive { color: #008000; }
+            .profit-negative { color: #ff0000; }
+            .metric-card .value { color: #d4a000; }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            th {
+                background: #f0f0f0;
+                color: #000;
+            }
+            td, th {
+                border: 1px solid #ddd;
+            }
+            .header h1 {
+                color: #d4a000;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            @page {
+                size: A4;
+                margin: 1.5cm;
+            }
+            .no-print, .no-print * {
+                display: none !important;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+            .separator-inputs-4 {
+                grid-template-columns: 1fr;
+            }
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <!-- IndexedDB Shim para compatibilidade -->
+    <script src="https://cdn.jsdelivr.net/npm/idb@8.0.0/build/umd.js"></script>
 </head>
 <body>
 <div class="container">
-    <div class="install-banner no-print" id="installBanner" style="display: none;">
-        <span><i class="fas fa-download"></i> <strong>Instalar App</strong> - Toque aqui para instalar o CONBCD Finanças no seu celular</span>
-        <button id="installBtn"><i class="fas fa-plus-circle"></i> Instalar</button>
-    </div>
-
-    <div class="header-institucional no-print">
-        <div class="logo-area">
-            <h1><i class="fas fa-church"></i> CONBCD FINANÇAS</h1>
-            <div class="igreja-selector">
-                <label><i class="fas fa-building"></i> Igreja:</label>
-                <select id="seletorIgreja"></select>
-            </div>
-        </div>
-        <div class="subtitle"><i class="fas fa-chart-line"></i> Gestão Financeira Profissional | Armazenamento Ilimitado</div>
-    </div>
-
-    <div class="dashboard-cards no-print">
-        <div class="card-modern card-receita">
-            <h4><i class="fas fa-arrow-up"></i> TOTAL RECEITAS</h4>
-            <div class="valor-grande" id="totalReceitas">R$ 0,00</div>
-        </div>
-        <div class="card-modern card-despesa">
-            <h4><i class="fas fa-arrow-down"></i> TOTAL DESPESAS</h4>
-            <div class="valor-grande" id="totalDespesas">R$ 0,00</div>
-        </div>
-        <div class="card-modern card-saldo">
-            <h4><i class="fas fa-balance-scale"></i> SALDO GERAL</h4>
-            <div class="valor-grande" id="saldoTotal">R$ 0,00</div>
-        </div>
-    </div>
-
-    <div class="tabs-system no-print">
-        <button class="tab-btn active" data-tab="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</button>
-        <button class="tab-btn" data-tab="lancamentos"><i class="fas fa-plus-circle"></i> Lançamentos</button>
-        <button class="tab-btn" data-tab="categorias"><i class="fas fa-tags"></i> Categorias</button>
-        <button class="tab-btn" data-tab="relatorios"><i class="fas fa-file-alt"></i> Relatórios</button>
-        <button class="tab-btn" data-tab="igrejas"><i class="fas fa-church"></i> Igrejas</button>
-        <button class="tab-btn" data-tab="backup"><i class="fas fa-database"></i> Backup</button>
-    </div>
-
-    <div id="dashboard" class="panel active-panel">
-        <h2><i class="fas fa-chart-pie"></i> Dashboard Financeiro</h2>
-        <div class="charts-row">
-            <div class="chart-box">
-                <h4>Comparativo Mensal</h4>
-                <canvas id="graficoMensal" height="250"></canvas>
-            </div>
-            <div class="chart-box">
-                <h4>Despesas por Categoria</h4>
-                <canvas id="graficoPizza" height="250"></canvas>
-            </div>
-        </div>
-        <div class="chart-box">
-            <h4>Últimas Transações</h4>
-            <div class="table-responsive">
-                <table id="ultimasTransacoes">
-                    <thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Valor</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div id="lancamentos" class="panel">
-        <h2><i class="fas fa-plus-circle"></i> Novo Lançamento</h2>
-        <div class="form-grid">
-            <div class="input-field"><label>Tipo</label><select id="tipoTransacao"><option value="receita">💰 Receita</option><option value="despesa">📉 Despesa</option></select></div>
-            <div class="input-field"><label>Categoria</label><select id="categoriaSelect"></select></div>
-            <div class="input-field"><label>Valor (R$)</label><input type="number" id="valorTransacao" step="0.01"></div>
-            <div class="input-field"><label>Data</label><input type="date" id="dataTransacao"></div>
-            <div class="input-field"><label>Descrição</label><input type="text" id="descTransacao" placeholder="Descrição..."></div>
-            <div class="input-field"><label>Forma Pagamento</label><select id="formaPagamento"><option>Dinheiro</option><option>PIX</option><option>Cartão</option><option>Transferência</option></select></div>
-            <div><button id="salvarTransacao"><i class="fas fa-save"></i> Salvar</button></div>
-        </div>
+    <div class="header">
+        <h1>
+            🏛️ IMPÉRIO FX JF<br>
+            <small>Gestão Financeira do Trader</small>
+        </h1>
+        <p>Múltiplas Contas | Lucro/Perda Separados | Saque/Aporte | % Apenas Operacional</p>
         
-        <h3>Histórico Completo</h3>
+        <!-- BARRA DE MENUS PROFISSIONAL -->
+        <div class="menu-bar">
+            <div class="menu-group">
+                <button onclick="toggleTheme()" class="menu-btn btn-theme" title="Alternar tema">
+                    <span>🌓</span> <span>Modo</span>
+                </button>
+            </div>
+            
+            <div class="menu-group">
+                <button onclick="exportToExcel()" class="menu-btn btn-excel" title="Exportar para Excel">
+                    <span>📊</span> <span>Excel</span>
+                </button>
+                <button onclick="generatePDF()" class="menu-btn btn-pdf" title="Exportar para PDF">
+                    <span>📄</span> <span>PDF</span>
+                </button>
+                <button onclick="exportToWord()" class="menu-btn btn-word" title="Exportar para Word">
+                    <span>📝</span> <span>Word</span>
+                </button>
+            </div>
+            
+            <div class="menu-group">
+                <button onclick="printFullReport()" class="menu-btn btn-print" title="Imprimir relatório completo (Web/App)">
+                    <span>🖨️</span> <span>Imprimir</span>
+                </button>
+                <button onclick="exportBackup()" class="menu-btn btn-backup" title="Fazer backup completo">
+                    <span>💾</span> <span>Backup</span>
+                </button>
+                <button onclick="document.getElementById('fileInput').click()" class="menu-btn btn-import" title="Importar backup">
+                    <span>📥</span> <span>Importar</span>
+                </button>
+            </div>
+            
+            <div class="menu-group">
+                <button onclick="openResetModal()" class="menu-btn btn-reset" title="Resetar conta atual">
+                    <span>🔄</span> <span>Resetar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GERENCIAMENTO DE CONTAS -->
+    <div class="card">
+        <div class="card-title">🏦 GERENCIAR CONTAS</div>
+        <div class="account-selector">
+            <select id="accountSelect" onchange="switchAccount()">
+                <option value="">Carregando...</option>
+            </select>
+            <input type="text" id="newAccountName" placeholder="Nome da nova conta">
+            <button onclick="createNewAccount()" class="btn-account">➕ Nova Conta</button>
+            <button onclick="deleteCurrentAccount()" class="btn-danger">🗑️ Excluir Conta</button>
+        </div>
+        <div id="accountStatus" style="margin-top: 10px; padding: 8px; background: rgba(255,215,0,0.1); border-radius: 8px; font-size: 0.9em;"></div>
+    </div>
+
+    <!-- Configuração Inicial da Conta Atual -->
+    <div class="card">
+        <div class="card-title">⚙️ CONFIGURAÇÃO DA CONTA</div>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>💰 Saldo Inicial da Conta (R$)</label>
+                <input type="number" step="0.01" id="globalInitialBalance" placeholder="Ex: 10000.00">
+            </div>
+            <div>
+                <button onclick="setInitialBalance()" class="btn-success">✅ Confirmar Saldo</button>
+            </div>
+        </div>
+        <div id="initialBalanceStatus" style="margin-top: 10px; padding: 10px; background: rgba(76,175,80,0.2); border-radius: 10px; display: none;"></div>
+    </div>
+
+    <!-- Métricas Principais -->
+    <div class="metrics-grid" id="mainMetrics"></div>
+
+    <div class="grid-2">
+        <!-- Lançamento de Trade -->
+        <div class="card">
+            <div class="card-title">📊 NOVO REGISTRO</div>
+            <form id="tradeForm">
+                <div class="form-group">
+                    <label>📆 Data</label>
+                    <input type="date" id="tradeDate" required>
+                </div>
+                <div class="form-group">
+                    <label>💰 Saldo Antes da Operação</label>
+                    <input type="number" step="0.01" id="dailyInitialBalance" readonly>
+                </div>
+                <div class="separator-inputs">
+                    <div class="form-group">
+                        <label class="info-text">📈 VALOR DO LUCRO (R$)</label>
+                        <input type="number" step="0.01" id="profitValue" placeholder="Ex: 10.00">
+                        <small style="color: #4caf50;">Apenas positivos</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="info-text">📉 VALOR DA PERDA (R$)</label>
+                        <input type="number" step="0.01" id="lossValue" placeholder="Ex: 15.00">
+                        <small style="color: #ff5252;">Apenas positivos</small>
+                    </div>
+                </div>
+                <div class="separator-inputs-4">
+                    <div class="form-group">
+                        <label class="info-text">🏧 SAQUE (R$)</label>
+                        <input type="number" step="0.01" id="withdrawValue" placeholder="Ex: 500.00">
+                        <small style="color: #ff5252;">Reduz saldo - Não afeta %</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="info-text">💰 APORTE (R$)</label>
+                        <input type="number" step="0.01" id="depositValue" placeholder="Ex: 1000.00">
+                        <small style="color: #4caf50;">Aumenta saldo - Não afeta %</small>
+                    </div>
+                </div>
+                <div class="form-group" id="lotsGroup">
+                    <label class="info-text">🎯 Lotes Operados</label>
+                    <input type="number" step="0.01" id="tradeLots" placeholder="Ex: 0.05">
+                    <small style="color: #aaa;">* Obrigatório apenas se houver Lucro ou Perda</small>
+                </div>
+                <div class="form-group">
+                    <label class="info-text">📊 Ativo</label>
+                    <input type="text" id="tradeAsset" placeholder="Ex: EUR/USD, WINJ25">
+                </div>
+                <div class="form-group">
+                    <label class="info-text">📝 Observação</label>
+                    <textarea id="tradeNote" rows="2" placeholder="Detalhes..."></textarea>
+                </div>
+                <button type="submit">➕ Adicionar Registro</button>
+            </form>
+        </div>
+
+        <!-- Calculadora Hedge -->
+        <div class="card">
+            <div class="card-title">🧮 HEDGE: ABATER LOTES NEGATIVOS</div>
+            <div class="form-group">
+                <label class="info-text">💰 Lucro que você vai realizar (R$)</label>
+                <input type="number" id="profitToRealize" step="0.01" placeholder="Ex: 10.00">
+            </div>
+            <div class="form-group">
+                <label class="info-text">🎯 Lotes da operação com lucro</label>
+                <input type="number" id="lotsProfit" step="0.01" placeholder="Ex: 0.05">
+            </div>
+            <div class="form-group">
+                <label class="info-text">📉 Prejuízo total da operação negativa (R$)</label>
+                <input type="number" id="totalLoss" step="0.01" placeholder="Ex: 15.00">
+            </div>
+            <div class="form-group">
+                <label class="info-text">🎯 Lotes totais da operação negativa</label>
+                <input type="number" id="lotsLoss" step="0.01" placeholder="Ex: 0.05">
+            </div>
+            <button onclick="calculateHedgeAbater()">🔢 CALCULAR LOTES PARA ABATER</button>
+            <div id="hedgeResult" class="hedge-calc-result">
+                <strong>📊 RESULTADO:</strong><br>
+                <span style="color: #aaa;">Preencha os campos acima</span>
+            </div>
+            <div class="card-title" style="margin-top: 20px;">📋 Registros de Hoje</div>
+            <div id="dailyOperationsList" class="operation-list">
+                Nenhum registro hoje
+            </div>
+        </div>
+    </div>
+
+    <!-- CALCULADORA DE DISTANCIAMENTO DE ORDENS (GRID PROGRESSIVO) -->
+    <div class="card">
+        <div class="card-title">📏 CALCULADORA DE DISTANCIAMENTO DE ORDENS (GRID PROGRESSIVO)</div>
+        <div class="grid-2">
+            <div>
+                <div class="form-group">
+                    <label class="info-text">🎯 Lote por Ordem</label>
+                    <input type="number" id="gridLotSize" step="0.01" value="0.01" placeholder="Ex: 0.01">
+                    <small>Quantidade de lotes por ordem</small>
+                </div>
+                <div class="form-group">
+                    <label class="info-text">📏 Distanciamento entre Ordens (pontos)</label>
+                    <input type="number" id="gridDistance" step="100" value="10000" placeholder="Ex: 10000">
+                    <small>Espaçamento em pontos entre cada ordem</small>
+                </div>
+                <div class="form-group">
+                    <label class="info-text">💰 Valor por Ponto (R$)</label>
+                    <input type="number" id="gridPointValue" step="0.00001" value="0.001" placeholder="Ex: 0.001">
+                    <small>Quanto cada ponto vale em R$ (ex: 0.001 = 0,1 centavo)</small>
+                </div>
+                <div class="form-group">
+                    <label class="info-text">🎯 Distância Total (pontos)</label>
+                    <input type="number" id="gridTotalDistance" step="1000" value="50000" placeholder="Ex: 50000">
+                    <small>Até quantos pontos quer chegar</small>
+                </div>
+                <button onclick="calculateGridDistance()" class="btn-calc">🔢 CALCULAR GRID PROGRESSIVO</button>
+            </div>
+            <div id="gridResult" class="grid-calc-result">
+                <strong>📊 RESULTADO DO GRID PROGRESSIVO:</strong><br><br>
+                <span style="color: #aaa;">Preencha os campos acima e clique em Calcular</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Porcentagens Detalhadas -->
+    <div class="grid-3" id="percentageCards"></div>
+
+    <!-- Gráfico Diário -->
+    <div class="card">
+        <div class="card-title">📈 EVOLUÇÃO DIÁRIA DO SALDO</div>
+        <div class="chart-container">
+            <canvas id="dailyChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Gráficos Mensal e Ativos -->
+    <div class="charts-row">
+        <div class="card">
+            <div class="card-title">📅 EVOLUÇÃO MENSAL DA CONTA</div>
+            <div class="chart-container">
+                <canvas id="monthlyChart"></canvas>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-title">🥇 ATIVOS MAIS OPERADOS</div>
+            <div class="chart-container">
+                <canvas id="assetsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabela de Todos os Registros -->
+    <div class="card">
+        <div class="card-title">📋 HISTÓRICO COMPLETO</div>
         <div class="table-responsive">
-            <table id="tabelaTransacoes">
-                <thead><tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th><th>Ações</th></tr></thead>
-                <tbody></tbody>
+            <table id="tradesTable">
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Saldo Antes</th>
+                        <th>Lucro</th>
+                        <th>Perda</th>
+                        <th>Saque</th>
+                        <th>Aporte</th>
+                        <th>Resultado</th>
+                        <th>% Operac.</th>
+                        <th>Lotes</th>
+                        <th>Ativo</th>
+                        <th>Saldo Final</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody id="tradesBody"></tbody>
             </table>
         </div>
     </div>
 
-    <div id="categorias" class="panel">
-        <h2><i class="fas fa-tags"></i> Gerenciar Categorias</h2>
-        <div class="form-grid">
-            <div class="input-field"><label>Nova Categoria</label><input type="text" id="novaCategoriaNome" placeholder="Ex: Dízimos"></div>
-            <div class="input-field"><label>Tipo</label><select id="tipoCategoria"><option value="ambos">Ambos</option><option value="receita">Receita</option><option value="despesa">Despesa</option></select></div>
-            <div><button id="adicionarCategoria"><i class="fas fa-plus"></i> Adicionar</button></div>
-        </div>
-        <div id="listaCategorias"></div>
-    </div>
-
-    <div id="relatorios" class="panel">
-        <h2><i class="fas fa-chart-bar"></i> Relatórios Financeiros</h2>
-        <div class="form-grid">
-            <div class="input-field"><label>Mês</label><select id="relMes"><option value="1">Janeiro</option><option value="2">Fevereiro</option><option value="3">Março</option><option value="4">Abril</option><option value="5">Maio</option><option value="6">Junho</option><option value="7">Julho</option><option value="8">Agosto</option><option value="9">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option></select></div>
-            <div class="input-field"><label>Ano</label><input type="number" id="relAno" value="2025"></div>
-            <div class="btn-group" style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <button id="gerarRelatorio"><i class="fas fa-search"></i> Gerar</button>
-                <button id="imprimirRelatorio" class="btn-print"><i class="fas fa-print"></i> 🖨️ Imprimir</button>
-                <button id="exportarPDF" class="btn-secondary"><i class="fas fa-file-pdf"></i> Salvar PDF</button>
-                <button id="btnRelatorioAvancado" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);"><i class="fas fa-chart-line"></i> Relatório Avançado</button>
+    <!-- CALCULADORA DE JUROS COMPOSTOS -->
+    <div class="card">
+        <div class="card-title">📈 CALCULADORA DE JUROS COMPOSTOS</div>
+        <div class="grid-2">
+            <div class="compound-interest-card">
+                <div class="form-group">
+                    <label class="info-text">💰 Valor Inicial (R$)</label>
+                    <input type="number" id="initialValue" step="0.01" placeholder="Ex: 1000.00" value="1000">
+                </div>
+                <div class="form-group">
+                    <label class="info-text">➕ Aporte Mensal (R$)</label>
+                    <input type="number" id="monthlyContribution" step="0.01" placeholder="Ex: 100.00" value="100">
+                </div>
+                <div class="form-group">
+                    <label class="info-text">📊 Taxa de Juros (% ao mês)</label>
+                    <input type="number" id="interestRate" step="0.01" placeholder="Ex: 1.5" value="1.5">
+                </div>
+                <div class="form-group">
+                    <label class="info-text">⏱️ Período (meses)</label>
+                    <input type="number" id="timeMonths" step="1" placeholder="Ex: 12" value="12">
+                </div>
+                <button onclick="calculateCompoundInterest()" class="btn-compound">🔢 CALCULAR</button>
             </div>
-        </div>
-        <div id="conteudoRelatorio" class="relatorio-box"></div>
-    </div>
-
-    <div id="igrejas" class="panel">
-        <h2><i class="fas fa-church"></i> Múltiplas Igrejas</h2>
-        <div class="form-grid">
-            <div class="input-field"><label>Nova Igreja</label><input type="text" id="novaIgrejaNome" placeholder="Nome da Igreja"></div>
-            <div class="input-field"><label>Endereço</label><input type="text" id="novaIgrejaEndereco" placeholder="Endereço"></div>
-            <div><button id="adicionarIgreja"><i class="fas fa-plus-circle"></i> Adicionar</button></div>
-        </div>
-        <div id="listaIgrejas"></div>
-    </div>
-
-    <div id="backup" class="panel">
-        <h2><i class="fas fa-shield-alt"></i> Backup e Restauração</h2>
-        <div class="form-grid">
-            <div><button id="fazerBackup" class="btn-success"><i class="fas fa-download"></i> Exportar Backup (JSON)</button></div>
-            <div><button id="restaurarBackup" class="btn-secondary" onclick="document.getElementById('restoreFile').click()"><i class="fas fa-upload"></i> Restaurar Backup</button></div>
-            <input type="file" id="restoreFile" accept=".json" style="display:none;">
-        </div>
-        <div class="info-box" style="margin-top:20px; padding:15px; background:#f0fdf4; border-radius:15px;">
-            <i class="fas fa-info-circle"></i> <strong>Informação de Armazenamento:</strong> 
-            <div id="storageInfo">Carregando informações...</div>
+            <div class="compound-interest-card">
+                <div id="compoundResult" class="compound-result">
+                    <strong>📊 RESULTADO:</strong><br><br>
+                    <span style="color: #aaa;">Preencha os campos acima e clique em Calcular</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<div class="storage-status" id="storageIndicator">
-    <i class="fas fa-database"></i> <span>Inicializando...</span>
+<!-- Input de arquivo escondido para importar backup -->
+<input type="file" id="fileInput" accept=".json" onchange="importBackup(this)">
+
+<!-- Modal Reset -->
+<div id="resetModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: #1a1f3a; padding: 30px; border-radius: 20px; max-width: 500px; width: 90%;">
+        <h2 style="color: #ffd700;">⚠️ RESETAR CONTA</h2>
+        <p>Isso apagará TODOS os dados da conta atual!</p>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button onclick="resetCurrentAccount()" class="btn-danger">✅ Sim, resetar</button>
+            <button onclick="closeResetModal()" class="btn-info">❌ Cancelar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Indicador de armazenamento -->
+<div class="storage-status" id="storageStatus" onclick="showStorageInfo()">
+    💾 Carregando...
 </div>
 
 <script>
-    // ============================================
-    // APP COM INDEXEDDB - ARMAZENAMENTO ILIMITADO
-    // ============================================
-    
-    // Configuração do IndexedDB
-    const DB_NAME = 'CONBCD_Financas_DB';
-    const DB_VERSION = 1;
+    // ==================== SISTEMA DE ARMAZENAMENTO ILIMITADO COM INDEXEDDB ====================
+    const DB_NAME = 'ImperioFXJF_DB';
+    const DB_VERSION = 2;
     let db = null;
-    let todasIgrejas = [];
-    let igrejaAtualId = null;
-    let transacoes = [];
-    let categorias = [];
-    let deferredPrompt = null;
-
-    // ============================================
-    // INICIALIZAR INDEXEDDB
-    // ============================================
+    let accountsCache = {};
+    let currentAccount = null;
+    let trades = [];
+    let systemInitialBalance = null;
+    let dailyChart = null;
+    let monthlyChart = null;
+    let assetsChart = null;
+    let isInitialized = false;
     
+    // Cache dos resultados das calculadoras para impressão
+    let cachedHedgeResult = '';
+    let cachedGridResult = '';
+    let cachedCompoundResult = '';
+    
+    // Detectar se está rodando em app (WebView) ou navegador
+    function isRunningAsApp() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        const isWebView = (
+            (window.indexedDB && !window.navigator.standalone) ||
+            (userAgent.includes('wv') || userAgent.includes('webview')) ||
+            (window.Android && window.Android.isApp) ||
+            (window.webkit && window.webkit.messageHandlers)
+        );
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                            window.navigator.standalone === true;
+        return isWebView || isStandalone;
+    }
+    
+    // FUNÇÃO DE IMPRESSÃO COMPLETA - Funciona na Web e no APK
+    function printFullReport() {
+        if (!currentAccount) {
+            alert('⚠️ Nenhuma conta selecionada para imprimir!');
+            return;
+        }
+        
+        // Atualizar cache dos resultados das calculadoras
+        updateCalculatorCache();
+        
+        // Gerar HTML do relatório completo
+        const reportHTML = generateFullReportHTML();
+        
+        // Criar uma janela/iframe para impressão
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            // Se popup bloqueado, tentar método alternativo
+            const printFrame = document.createElement('iframe');
+            printFrame.style.position = 'absolute';
+            printFrame.style.width = '0px';
+            printFrame.style.height = '0px';
+            printFrame.style.border = '0';
+            document.body.appendChild(printFrame);
+            const frameDoc = printFrame.contentWindow.document;
+            frameDoc.write(reportHTML);
+            frameDoc.close();
+            printFrame.contentWindow.focus();
+            printFrame.contentWindow.print();
+            setTimeout(() => document.body.removeChild(printFrame), 1000);
+        } else {
+            printWindow.document.write(reportHTML);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+        }
+        
+        alert('🖨️ Abrindo diálogo de impressão...\n\n✅ Funciona tanto no navegador quanto no APK!\n📄 O sistema de impressão do seu dispositivo será aberto automaticamente.');
+    }
+    
+    // Atualizar cache dos resultados das calculadoras
+    function updateCalculatorCache() {
+        // Pegar o resultado atual do Hedge
+        const hedgeDiv = document.getElementById('hedgeResult');
+        if (hedgeDiv) cachedHedgeResult = hedgeDiv.innerHTML;
+        
+        // Pegar o resultado atual do Grid
+        const gridDiv = document.getElementById('gridResult');
+        if (gridDiv) cachedGridResult = gridDiv.innerHTML;
+        
+        // Pegar o resultado atual do Juros Compostos
+        const compoundDiv = document.getElementById('compoundResult');
+        if (compoundDiv) cachedCompoundResult = compoundDiv.innerHTML;
+    }
+    
+    // Gerar HTML completo do relatório para impressão
+    function generateFullReportHTML() {
+        // Calcular totais
+        const totalProfit = trades.reduce((sum, t) => sum + (t.profit || 0), 0);
+        const totalLoss = trades.reduce((sum, t) => sum + (t.loss || 0), 0);
+        const totalWithdraw = trades.reduce((sum, t) => sum + (t.withdraw || 0), 0);
+        const totalDeposit = trades.reduce((sum, t) => sum + (t.deposit || 0), 0);
+        const totalOperationalResult = totalProfit - totalLoss;
+        const finalBalance = trades.length > 0 ? trades[trades.length - 1].finalDayBalance : (systemInitialBalance || 0);
+        let totalOperationalPercentage = 0;
+        if (systemInitialBalance && systemInitialBalance !== 0) {
+            totalOperationalPercentage = (totalOperationalResult / systemInitialBalance) * 100;
+        }
+        
+        // Gerar tabela de operações
+        let operationsTableHTML = '';
+        const sortedTrades = [...trades].sort((a, b) => {
+            if (a.date !== b.date) return new Date(a.date) - new Date(b.date);
+            return new Date(a.timestamp) - new Date(b.timestamp);
+        });
+        
+        sortedTrades.forEach((trade, index) => {
+            operationsTableHTML += `
+                <tr>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${index + 1}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${trade.date}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">R$ ${(trade.profit || 0).toFixed(2)}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">R$ ${(trade.loss || 0).toFixed(2)}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">R$ ${(trade.withdraw || 0).toFixed(2)}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">R$ ${(trade.deposit || 0).toFixed(2)}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">R$ ${(trade.operationalResult || 0).toFixed(2)}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">${(trade.dailyPercentage || 0).toFixed(2)}%</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${trade.lots > 0 ? trade.lots : '-'}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${trade.asset || '-'}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">R$ ${(trade.finalDayBalance || 0).toFixed(2)}</td>
+                </tr>
+            `;
+        });
+        
+        // Métricas de performance
+        const positiveTrades = trades.filter(t => (t.operationalResult || 0) > 0).length;
+        const negativeTrades = trades.filter(t => (t.operationalResult || 0) < 0).length;
+        const totalTradesWithResult = trades.filter(t => t.profit !== 0 || t.loss !== 0).length;
+        const hitRate = totalTradesWithResult > 0 ? (positiveTrades / totalTradesWithResult * 100).toFixed(1) : '0';
+        
+        const validPercentages = trades.filter(t => !isNaN(t.dailyPercentage) && isFinite(t.dailyPercentage)).map(t => t.dailyPercentage);
+        const avgPercentage = validPercentages.length > 0 ? (validPercentages.reduce((a,b) => a+b, 0) / validPercentages.length).toFixed(2) : '0';
+        const maxPositive = Math.max(...validPercentages, 0).toFixed(2);
+        const maxNegative = Math.min(...validPercentages, 0).toFixed(2);
+        
+        return `<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Relatório Império FX JF - ${currentAccount}</title>
+            <style>
+                * {
+                    margin: 0;
+                    padding: 0;
+                    box-sizing: border-box;
+                }
+                body {
+                    font-family: 'Segoe UI', Arial, sans-serif;
+                    padding: 20px;
+                    background: white;
+                    color: #333;
+                }
+                .header {
+                    text-align: center;
+                    margin-bottom: 30px;
+                    padding: 20px;
+                    border-bottom: 3px solid #ffd700;
+                }
+                .header h1 {
+                    color: #d4a000;
+                    font-size: 28px;
+                }
+                .header p {
+                    color: #666;
+                    margin-top: 10px;
+                }
+                .section {
+                    margin-bottom: 30px;
+                    page-break-inside: avoid;
+                }
+                .section-title {
+                    font-size: 20px;
+                    color: #d4a000;
+                    border-left: 4px solid #d4a000;
+                    padding-left: 12px;
+                    margin-bottom: 15px;
+                    margin-top: 20px;
+                }
+                .metrics-grid {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                    gap: 15px;
+                    margin-bottom: 20px;
+                }
+                .metric-card {
+                    background: #f5f5f5;
+                    padding: 15px;
+                    border-radius: 10px;
+                    text-align: center;
+                    border: 1px solid #e0e0e0;
+                }
+                .metric-card h4 {
+                    font-size: 12px;
+                    color: #666;
+                    margin-bottom: 8px;
+                }
+                .metric-card .value {
+                    font-size: 18px;
+                    font-weight: bold;
+                    color: #d4a000;
+                }
+                .profit-positive { color: #008000 !important; font-weight: bold; }
+                .profit-negative { color: #ff0000 !important; font-weight: bold; }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 15px;
+                    font-size: 11px;
+                }
+                th {
+                    background: #f0f0f0;
+                    padding: 10px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                }
+                td {
+                    padding: 8px;
+                    border: 1px solid #ddd;
+                    text-align: center;
+                }
+                .calc-result-box {
+                    background: #f9f9f9;
+                    padding: 15px;
+                    border-radius: 10px;
+                    margin-top: 10px;
+                    border: 1px solid #e0e0e0;
+                }
+                .footer {
+                    text-align: center;
+                    margin-top: 40px;
+                    padding-top: 20px;
+                    border-top: 1px solid #ddd;
+                    font-size: 10px;
+                    color: #999;
+                }
+                @media print {
+                    body {
+                        padding: 0;
+                        margin: 0;
+                    }
+                    .section {
+                        page-break-inside: avoid;
+                    }
+                    table {
+                        page-break-inside: avoid;
+                    }
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>🏛️ IMPÉRIO FX JF</h1>
+                <h2>Relatório Completo de Gestão Financeira</h2>
+                <p><strong>Conta:</strong> ${currentAccount}</p>
+                <p><strong>Data de emissão:</strong> ${new Date().toLocaleString()}</p>
+                <p><strong>Total de registros:</strong> ${trades.length} operações</p>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">📊 RESUMO EXECUTIVO</div>
+                <div class="metrics-grid">
+                    <div class="metric-card"><h4>💰 Saldo Inicial</h4><div class="value">R$ ${(systemInitialBalance || 0).toFixed(2)}</div></div>
+                    <div class="metric-card"><h4>📈 Lucro Total</h4><div class="value profit-positive">R$ ${totalProfit.toFixed(2)}</div></div>
+                    <div class="metric-card"><h4>📉 Perda Total</h4><div class="value profit-negative">R$ ${totalLoss.toFixed(2)}</div></div>
+                    <div class="metric-card"><h4>🏧 Saques</h4><div class="value profit-negative">R$ ${totalWithdraw.toFixed(2)}</div></div>
+                    <div class="metric-card"><h4>💰 Aportes</h4><div class="value profit-positive">R$ ${totalDeposit.toFixed(2)}</div></div>
+                    <div class="metric-card"><h4>📊 Resultado Op.</h4><div class="value ${totalOperationalResult >= 0 ? 'profit-positive' : 'profit-negative'}">R$ ${totalOperationalResult.toFixed(2)}</div></div>
+                    <div class="metric-card"><h4>🏁 Saldo Final</h4><div class="value">R$ ${finalBalance.toFixed(2)}</div></div>
+                    <div class="metric-card"><h4>📈 Rentabilidade %</h4><div class="value ${totalOperationalPercentage >= 0 ? 'profit-positive' : 'profit-negative'}">${totalOperationalPercentage >= 0 ? '+' : ''}${totalOperationalPercentage.toFixed(2)}%</div></div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">📈 MÉTRICAS DE PERFORMANCE</div>
+                <div class="metrics-grid">
+                    <div class="metric-card"><h4>🎯 Taxa de Acerto</h4><div class="value profit-positive">${hitRate}%</div></div>
+                    <div class="metric-card"><h4>📊 Média % por Trade</h4><div class="value ${parseFloat(avgPercentage) >= 0 ? 'profit-positive' : 'profit-negative'}">${avgPercentage >= 0 ? '+' : ''}${avgPercentage}%</div></div>
+                    <div class="metric-card"><h4>🏆 Maior Ganho %</h4><div class="value profit-positive">+${maxPositive}%</div></div>
+                    <div class="metric-card"><h4>💔 Maior Perda %</h4><div class="value profit-negative">${maxNegative}%</div></div>
+                    <div class="metric-card"><h4>✅ Trades Positivos</h4><div class="value profit-positive">${positiveTrades}</div></div>
+                    <div class="metric-card"><h4>❌ Trades Negativos</h4><div class="value profit-negative">${negativeTrades}</div></div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">📋 HISTÓRICO COMPLETO DE OPERAÇÕES</div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th><th>Data</th><th>Lucro</th><th>Perda</th><th>Saque</th><th>Aporte</th><th>Res.Op</th><th>%</th><th>Lotes</th><th>Ativo</th><th>Saldo Final</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${operationsTableHTML || '<tr><td colspan="11">Nenhum registro encontrado</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">🧮 RESULTADOS DAS CALCULADORAS</div>
+                
+                <div style="margin-top: 15px;">
+                    <h3 style="color: #d4a000; margin-bottom: 10px;">📐 Calculadora Hedge</h3>
+                    <div class="calc-result-box">
+                        ${cachedHedgeResult || '<span style="color: #999;">Nenhum cálculo realizado ainda. Preencha os dados na calculadora Hedge e clique em Calcular.</span>'}
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <h3 style="color: #d4a000; margin-bottom: 10px;">📏 Calculadora Grid Progressivo</h3>
+                    <div class="calc-result-box">
+                        ${cachedGridResult || '<span style="color: #999;">Nenhum cálculo realizado ainda. Preencha os dados na calculadora Grid e clique em Calcular.</span>'}
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <h3 style="color: #d4a000; margin-bottom: 10px;">📈 Calculadora Juros Compostos</h3>
+                    <div class="calc-result-box">
+                        ${cachedCompoundResult || '<span style="color: #999;">Nenhum cálculo realizado ainda. Preencha os dados na calculadora Juros Compostos e clique em Calcular.</span>'}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer">
+                <p>Relatório gerado pelo Sistema Império FX JF - Gestão Financeira do Trader</p>
+                <p>Documento emitido em ${new Date().toLocaleString()}</p>
+            </div>
+        </body>
+        </html>`;
+    }
+    
+    // Inicializar IndexedDB
     async function initDatabase() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, DB_VERSION);
             
             request.onerror = (event) => {
-                console.error('Erro ao abrir IndexedDB:', event);
-                reject(event);
+                console.error('Erro ao abrir IndexedDB:', event.target.error);
+                useLocalStorageFallback();
+                resolve(false);
             };
             
             request.onsuccess = (event) => {
                 db = event.target.result;
-                console.log('IndexedDB iniciado com sucesso!');
-                resolve(db);
+                console.log('IndexedDB inicializado com sucesso!');
+                migrateFromLocalStorage().then(() => {
+                    resolve(true);
+                });
             };
             
             request.onupgradeneeded = (event) => {
-                const db = event.target.result;
-                
-                // Criar stores (tabelas)
-                if (!db.objectStoreNames.contains('igrejas')) {
-                    const igrejaStore = db.createObjectStore('igrejas', { keyPath: 'id' });
-                    igrejaStore.createIndex('nome', 'nome', { unique: false });
+                const dbUpgrade = event.target.result;
+                if (!dbUpgrade.objectStoreNames.contains('accounts')) {
+                    const accountStore = dbUpgrade.createObjectStore('accounts', { keyPath: 'name' });
+                    accountStore.createIndex('name', 'name', { unique: true });
                 }
-                
-                if (!db.objectStoreNames.contains('transacoes')) {
-                    const transacaoStore = db.createObjectStore('transacoes', { keyPath: 'id' });
-                    transacaoStore.createIndex('igrejaId', 'igrejaId', { unique: false });
-                    transacaoStore.createIndex('data', 'data', { unique: false });
-                    transacaoStore.createIndex('tipo', 'tipo', { unique: false });
+                if (!dbUpgrade.objectStoreNames.contains('settings')) {
+                    dbUpgrade.createObjectStore('settings', { keyPath: 'key' });
                 }
-                
-                if (!db.objectStoreNames.contains('categorias')) {
-                    const categoriaStore = db.createObjectStore('categorias', { keyPath: 'id' });
-                    categoriaStore.createIndex('igrejaId', 'igrejaId', { unique: false });
-                }
-                
-                console.log('Database structure created');
-            };
-        });
-    }
-
-    // ============================================
-    // FUNÇÕES DE CRUD - IGREJAS
-    // ============================================
-    
-    async function salvarIgrejas(igrejas) {
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(['igrejas'], 'readwrite');
-            const store = transaction.objectStore('igrejas');
-            
-            // Limpar store atual
-            store.clear();
-            
-            // Adicionar todas as igrejas
-            igrejas.forEach(igreja => {
-                store.put(igreja);
-            });
-            
-            transaction.oncomplete = () => {
-                todasIgrejas = igrejas;
-                resolve();
-            };
-            
-            transaction.onerror = (event) => {
-                reject(event);
+                console.log('IndexedDB atualizado para versão', DB_VERSION);
             };
         });
     }
     
-    async function carregarIgrejas() {
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(['igrejas'], 'readonly');
-            const store = transaction.objectStore('igrejas');
-            const request = store.getAll();
-            
-            request.onsuccess = () => {
-                todasIgrejas = request.result || [];
-                resolve(todasIgrejas);
-            };
-            
-            request.onerror = (event) => {
-                reject(event);
-            };
-        });
+    function useLocalStorageFallback() {
+        console.warn('Usando localStorage como fallback (limitado a ~5MB)');
+        document.getElementById('storageStatus').innerHTML = '⚠️ Modo limitado (~5MB)';
+        document.getElementById('storageStatus').style.background = 'rgba(255,100,0,0.8)';
     }
     
-    // ============================================
-    // FUNÇÕES DE CRUD - TRANSAÇÕES
-    // ============================================
-    
-    async function salvarTransacoes(igrejaId, transacoesList) {
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(['transacoes'], 'readwrite');
-            const store = transaction.objectStore('transacoes');
-            
-            // Remover transações antigas da igreja
-            const index = store.index('igrejaId');
-            const range = IDBKeyRange.only(igrejaId);
-            const deleteRequest = index.openCursor(range);
-            
-            deleteRequest.onsuccess = (event) => {
-                const cursor = event.target.result;
-                if (cursor) {
-                    store.delete(cursor.primaryKey);
-                    cursor.continue();
-                }
-            };
-            
-            transaction.oncomplete = () => {
-                // Adicionar novas transações
-                const addTransaction = db.transaction(['transacoes'], 'readwrite');
-                const addStore = addTransaction.objectStore('transacoes');
-                
-                transacoesList.forEach(transacao => {
-                    addStore.put(transacao);
-                });
-                
-                addTransaction.oncomplete = () => {
-                    resolve();
-                };
-                
-                addTransaction.onerror = (event) => {
-                    reject(event);
-                };
-            };
-            
-            transaction.onerror = (event) => {
-                reject(event);
-            };
-        });
-    }
-    
-    async function carregarTransacoes(igrejaId) {
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(['transacoes'], 'readonly');
-            const store = transaction.objectStore('transacoes');
-            const index = store.index('igrejaId');
-            const range = IDBKeyRange.only(igrejaId);
-            const request = index.getAll(range);
-            
-            request.onsuccess = () => {
-                transacoes = request.result || [];
-                resolve(transacoes);
-            };
-            
-            request.onerror = (event) => {
-                reject(event);
-            };
-        });
-    }
-    
-    // ============================================
-    // FUNÇÕES DE CRUD - CATEGORIAS
-    // ============================================
-    
-    async function salvarCategorias(igrejaId, categoriasList) {
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(['categorias'], 'readwrite');
-            const store = transaction.objectStore('categorias');
-            
-            // Remover categorias antigas
-            const index = store.index('igrejaId');
-            const range = IDBKeyRange.only(igrejaId);
-            const deleteRequest = index.openCursor(range);
-            
-            deleteRequest.onsuccess = (event) => {
-                const cursor = event.target.result;
-                if (cursor) {
-                    store.delete(cursor.primaryKey);
-                    cursor.continue();
-                }
-            };
-            
-            transaction.oncomplete = () => {
-                // Adicionar novas categorias
-                const addTransaction = db.transaction(['categorias'], 'readwrite');
-                const addStore = addTransaction.objectStore('categorias');
-                
-                categoriasList.forEach((categoria, index) => {
-                    addStore.put({
-                        id: `${igrejaId}_${index}_${Date.now()}`,
-                        igrejaId: igrejaId,
-                        nome: categoria.nome,
-                        tipo: categoria.tipo
-                    });
-                });
-                
-                addTransaction.oncomplete = () => {
-                    resolve();
-                };
-                
-                addTransaction.onerror = (event) => {
-                    reject(event);
-                };
-            };
-            
-            transaction.onerror = (event) => {
-                reject(event);
-            };
-        });
-    }
-    
-    async function carregarCategorias(igrejaId) {
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(['categorias'], 'readonly');
-            const store = transaction.objectStore('categorias');
-            const index = store.index('igrejaId');
-            const range = IDBKeyRange.only(igrejaId);
-            const request = index.getAll(range);
-            
-            request.onsuccess = () => {
-                const categoriasData = request.result || [];
-                categorias = categoriasData.map(c => ({ nome: c.nome, tipo: c.tipo }));
-                resolve(categorias);
-            };
-            
-            request.onerror = (event) => {
-                reject(event);
-            };
-        });
-    }
-    
-    // ============================================
-    // FUNÇÕES DE INFORMAÇÃO DE ARMAZENAMENTO
-    // ============================================
-    
-    async function getStorageInfo() {
-        try {
-            if ('storage' in navigator && 'estimate' in navigator.storage) {
-                const estimate = await navigator.storage.estimate();
-                const used = estimate.usage || 0;
-                const quota = estimate.quota || 0;
-                const percentUsed = (used / quota * 100).toFixed(2);
-                
-                // Contar registros
-                const totalIgrejas = todasIgrejas.length;
-                let totalTransacoes = 0;
-                for (const igreja of todasIgrejas) {
-                    const transacoesIgreja = await carregarTransacoes(igreja.id);
-                    totalTransacoes += transacoesIgreja.length;
-                }
-                
-                return {
-                    used: used,
-                    quota: quota,
-                    percentUsed: percentUsed,
-                    usedMB: (used / (1024 * 1024)).toFixed(2),
-                    quotaMB: (quota / (1024 * 1024)).toFixed(2),
-                    totalIgrejas: totalIgrejas,
-                    totalTransacoes: totalTransacoes,
-                    igrejas: todasIgrejas
-                };
-            }
-        } catch (e) {
-            console.error('Erro ao obter informações de armazenamento:', e);
-        }
-        return null;
-    }
-    
-    async function updateStorageDisplay() {
-        const info = await getStorageInfo();
-        const storageInfoDiv = document.getElementById('storageInfo');
-        const storageIndicator = document.getElementById('storageIndicator');
+    async function migrateFromLocalStorage() {
+        const stored = localStorage.getItem('imperiofxjf_all_accounts_v13');
+        if (!stored) return;
         
-        if (info) {
-            const percentColor = info.percentUsed > 80 ? '#ef4444' : (info.percentUsed > 50 ? '#f59e0b' : '#10b981');
-            storageInfoDiv.innerHTML = `
-                <div style="margin-top: 10px;">
-                    <p><strong>📊 Status do Armazenamento:</strong></p>
-                    <div style="background: #e5e7eb; border-radius: 10px; overflow: hidden; margin: 10px 0;">
-                        <div style="background: ${percentColor}; width: ${info.percentUsed}%; height: 20px; transition: width 0.3s;"></div>
-                    </div>
-                    <p>✅ <strong>Espaço Usado:</strong> ${info.usedMB} MB de ${info.quotaMB} MB (${info.percentUsed}%)</p>
-                    <p>🏛️ <strong>Igrejas Cadastradas:</strong> ${info.totalIgrejas}</p>
-                    <p>💰 <strong>Total de Transações:</strong> ${info.totalTransacoes}</p>
-                    <p>💾 <strong>Capacidade Disponível:</strong> ${(info.quotaMB - info.usedMB).toFixed(2)} MB</p>
-                    <p class="text-success" style="color: #10b981; margin-top: 10px;">
-                        <i class="fas fa-infinity"></i> <strong>Armazenamento Ilimitado!</strong> Enquanto houver espaço no celular, você pode cadastrar quantos dados quiser.
-                    </p>
-                </div>
-            `;
-            
-            storageIndicator.innerHTML = `<i class="fas fa-database"></i> ${info.usedMB} MB / ${info.quotaMB} MB usado`;
-            storageIndicator.style.background = percentColor === '#10b981' ? '#10b981' : (percentColor === '#f59e0b' ? '#f59e0b' : '#ef4444');
-        } else {
-            storageInfoDiv.innerHTML = `
-                <p>✅ <strong>Modo Armazenamento Ilimitado Ativo!</strong></p>
-                <p>📱 Os dados são salvos no IndexedDB do seu dispositivo.</p>
-                <p>💾 Capacidade: Limitada apenas pelo espaço disponível na memória interna do celular.</p>
-                <p>🚀 Você pode cadastrar MILHARES de transações sem preocupação!</p>
-            `;
-            storageIndicator.innerHTML = '<i class="fas fa-infinity"></i> Armazenamento Ilimitado';
-            storageIndicator.style.background = '#10b981';
-        }
-    }
-    
-    // ============================================
-    // FUNÇÕES PRINCIPAIS DO APP (MODIFICADAS)
-    // ============================================
-    
-    function showLoading(message = 'Carregando...') {
-        let loading = document.querySelector('.loading-overlay');
-        if (!loading) {
-            loading = document.createElement('div');
-            loading.className = 'loading-overlay';
-            loading.innerHTML = `
-                <div class="loading-content">
-                    <i class="fas fa-spinner fa-pulse fa-2x"></i>
-                    <p id="loadingMessage">${message}</p>
-                </div>
-            `;
-            document.body.appendChild(loading);
-        } else {
-            const msgElement = loading.querySelector('#loadingMessage');
-            if (msgElement) msgElement.textContent = message;
-            loading.style.display = 'flex';
-        }
-    }
-    
-    function hideLoading() {
-        const loading = document.querySelector('.loading-overlay');
-        if (loading) {
-            loading.style.display = 'none';
-        }
-    }
-    
-    async function carregarDados() {
-        showLoading('Carregando dados...');
         try {
-            // Carregar igrejas
-            await carregarIgrejas();
+            const oldAccounts = JSON.parse(stored);
+            const existingAccounts = await getAllAccounts();
             
-            if (todasIgrejas.length === 0) {
-                // Dados iniciais
-                todasIgrejas = [{
-                    id: Date.now(),
-                    nome: "Igreja Batista Casa de Deus",
-                    endereco: "",
-                    dataCriacao: new Date().toISOString()
-                }];
-                await salvarIgrejas(todasIgrejas);
-            }
-            
-            // Carregar igreja atual
-            const savedAtual = localStorage.getItem("conbcd_financas_atual");
-            if (savedAtual) {
-                igrejaAtualId = parseInt(savedAtual);
-                if (!todasIgrejas.find(i => i.id === igrejaAtualId)) {
-                    igrejaAtualId = todasIgrejas[0].id;
+            if (Object.keys(existingAccounts).length === 0 && Object.keys(oldAccounts).length > 0) {
+                console.log('Migrando dados do localStorage para IndexedDB...');
+                for (const [accName, accData] of Object.entries(oldAccounts)) {
+                    await saveAccountToDB(accName, accData);
                 }
-            } else {
-                igrejaAtualId = todasIgrejas[0].id;
+                const lastAccount = localStorage.getItem('imperiofxjf_last_account');
+                if (lastAccount) await setSetting('last_account', lastAccount);
+                const theme = localStorage.getItem('theme');
+                if (theme) await setSetting('theme', theme);
+                console.log('Migração concluída!');
             }
-            
-            // Carregar dados da igreja atual
-            await carregarIgrejaAtual();
-            atualizarSeletor();
-            await atualizarInterface();
-            await updateStorageDisplay();
         } catch (error) {
-            console.error('Erro ao carregar dados:', error);
-            alert('Erro ao carregar dados. Recarregue a página.');
-        } finally {
-            hideLoading();
+            console.error('Erro na migração:', error);
         }
     }
     
-    async function carregarIgrejaAtual() {
-        await Promise.all([
-            carregarTransacoes(igrejaAtualId),
-            carregarCategorias(igrejaAtualId)
-        ]);
+    async function saveAccountToDB(accountName, accountData) {
+        if (!db) {
+            const allAccounts = JSON.parse(localStorage.getItem('imperiofxjf_all_accounts_v13') || '{}');
+            allAccounts[accountName] = accountData;
+            localStorage.setItem('imperiofxjf_all_accounts_v13', JSON.stringify(allAccounts));
+            return;
+        }
         
-        if (categorias.length === 0) {
-            categorias = [
-                { nome: "Dízimos", tipo: "receita" },
-                { nome: "Ofertas", tipo: "receita" },
-                { nome: "Eventos", tipo: "ambos" },
-                { nome: "Manutenção", tipo: "despesa" },
-                { nome: "Salários", tipo: "despesa" },
-                { nome: "Material", tipo: "despesa" },
-                { nome: "Missões", tipo: "receita" }
-            ];
-            await salvarCategorias(igrejaAtualId, categorias);
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['accounts'], 'readwrite');
+            const store = transaction.objectStore('accounts');
+            const request = store.put({
+                name: accountName,
+                trades: accountData.trades || [],
+                initialBalance: accountData.initialBalance || null,
+                lastModified: new Date().toISOString()
+            });
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+    }
+    
+    async function getAllAccounts() {
+        if (!db) {
+            const stored = localStorage.getItem('imperiofxjf_all_accounts_v13');
+            return stored ? JSON.parse(stored) : {};
+        }
+        
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['accounts'], 'readonly');
+            const store = transaction.objectStore('accounts');
+            const request = store.getAll();
+            request.onsuccess = () => {
+                const accounts = {};
+                request.result.forEach(account => {
+                    accounts[account.name] = {
+                        trades: account.trades,
+                        initialBalance: account.initialBalance
+                    };
+                });
+                resolve(accounts);
+            };
+            request.onerror = () => reject(request.error);
+        });
+    }
+    
+    async function getAccountFromDB(accountName) {
+        if (!db) {
+            const allAccounts = JSON.parse(localStorage.getItem('imperiofxjf_all_accounts_v13') || '{}');
+            return allAccounts[accountName] || null;
+        }
+        
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['accounts'], 'readonly');
+            const store = transaction.objectStore('accounts');
+            const request = store.get(accountName);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+    
+    async function deleteAccountFromDB(accountName) {
+        if (!db) {
+            const allAccounts = JSON.parse(localStorage.getItem('imperiofxjf_all_accounts_v13') || '{}');
+            delete allAccounts[accountName];
+            localStorage.setItem('imperiofxjf_all_accounts_v13', JSON.stringify(allAccounts));
+            return;
+        }
+        
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['accounts'], 'readwrite');
+            const store = transaction.objectStore('accounts');
+            const request = store.delete(accountName);
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+    }
+    
+    async function setSetting(key, value) {
+        if (!db) {
+            localStorage.setItem(`imperiofxjf_setting_${key}`, JSON.stringify(value));
+            return;
+        }
+        
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['settings'], 'readwrite');
+            const store = transaction.objectStore('settings');
+            const request = store.put({ key: key, value: value });
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+    }
+    
+    async function getSetting(key) {
+        if (!db) {
+            const stored = localStorage.getItem(`imperiofxjf_setting_${key}`);
+            return stored ? JSON.parse(stored) : null;
+        }
+        
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['settings'], 'readonly');
+            const store = transaction.objectStore('settings');
+            const request = store.get(key);
+            request.onsuccess = () => resolve(request.result ? request.result.value : null);
+            request.onerror = () => reject(request.error);
+        });
+    }
+    
+    async function checkStorageSpace() {
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+            try {
+                const estimate = await navigator.storage.estimate();
+                const usedMB = (estimate.usage / (1024 * 1024)).toFixed(2);
+                const quotaMB = (estimate.quota / (1024 * 1024)).toFixed(2);
+                const percentUsed = (estimate.usage / estimate.quota * 100).toFixed(1);
+                let statusIcon = '💾';
+                let bgColor = 'rgba(0,0,0,0.7)';
+                if (percentUsed > 80) {
+                    statusIcon = '⚠️';
+                    bgColor = 'rgba(255,100,0,0.8)';
+                }
+                document.getElementById('storageStatus').innerHTML = `${statusIcon} ${usedMB}/${quotaMB} MB (${percentUsed}%)`;
+                document.getElementById('storageStatus').style.background = bgColor;
+                return { usedMB, quotaMB, percentUsed };
+            } catch (e) {
+                document.getElementById('storageStatus').innerHTML = '💾 Espaço: Ilimitado (IndexedDB)';
+                return null;
+            }
+        } else {
+            document.getElementById('storageStatus').innerHTML = '💾 Espaço: Ilimitado (IndexedDB)';
+            return null;
         }
     }
     
-    async function salvarIgrejaAtual() {
-        const index = todasIgrejas.findIndex(i => i.id === igrejaAtualId);
-        if (index !== -1) {
-            todasIgrejas[index].transacoes = transacoes;
-            todasIgrejas[index].categorias = categorias;
-            todasIgrejas[index].ultimaAtualizacao = new Date().toISOString();
+    function showStorageInfo() {
+        if ('storage' in navigator && 'estimate' in navigator.storage) {
+            navigator.storage.estimate().then(estimate => {
+                const usedMB = (estimate.usage / (1024 * 1024)).toFixed(2);
+                const quotaMB = (estimate.quota / (1024 * 1024)).toFixed(2);
+                alert(`📊 Status de Armazenamento:\n\n💾 Usado: ${usedMB} MB\n📦 Disponível: ${quotaMB} MB\n✅ Sem limites artificiais - use enquanto tiver espaço!`);
+            });
+        } else {
+            alert('✅ Armazenamento via IndexedDB\n📦 Sem limites de tamanho!\n💾 Enquanto houver espaço no seu dispositivo, pode continuar cadastrando.');
         }
-        await salvarIgrejas(todasIgrejas);
-        await salvarTransacoes(igrejaAtualId, transacoes);
-        await salvarCategorias(igrejaAtualId, categorias);
-        localStorage.setItem("conbcd_financas_atual", igrejaAtualId);
-        await updateStorageDisplay();
     }
     
-    function atualizarSeletor() {
-        const select = document.getElementById('seletorIgreja');
-        if (!select) return;
+    async function saveAllData() {
+        if (currentAccount && accountsCache[currentAccount]) {
+            await saveAccountToDB(currentAccount, accountsCache[currentAccount]);
+        }
+        await setSetting('last_account', currentAccount);
+        checkStorageSpace();
+    }
+    
+    async function loadAllData() {
+        accountsCache = await getAllAccounts();
+        const lastAccount = await getSetting('last_account');
+        if (lastAccount && accountsCache[lastAccount]) {
+            await loadAccountData(lastAccount);
+        } else if (Object.keys(accountsCache).length > 0) {
+            await loadAccountData(Object.keys(accountsCache)[0]);
+        } else {
+            accountsCache = { 'Conta Principal': { trades: [], initialBalance: null } };
+            await saveAccountToDB('Conta Principal', accountsCache['Conta Principal']);
+            await loadAccountData('Conta Principal');
+        }
+        const savedTheme = await getSetting('theme');
+        if (savedTheme === 'light') document.body.classList.add('light-mode');
+        isInitialized = true;
+        checkStorageSpace();
+    }
+    
+    async function loadAccountData(accountName) {
+        if (!accountName || !accountsCache[accountName]) return;
+        currentAccount = accountName;
+        const accountData = accountsCache[accountName];
+        trades = accountData.trades || [];
+        systemInitialBalance = accountData.initialBalance;
+        document.getElementById('globalInitialBalance').value = systemInitialBalance !== null ? systemInitialBalance : '';
+        if (systemInitialBalance !== null) {
+            document.getElementById('initialBalanceStatus').style.display = 'block';
+            document.getElementById('initialBalanceStatus').innerHTML = `✅ Saldo inicial: R$ ${systemInitialBalance.toFixed(2)} | 💾 Armazenamento: Ilimitado`;
+            document.getElementById('initialBalanceStatus').style.background = 'rgba(76,175,80,0.2)';
+        } else {
+            document.getElementById('initialBalanceStatus').style.display = 'none';
+        }
+        const saldoTexto = systemInitialBalance !== null ? `R$ ${systemInitialBalance.toFixed(2)}` : 'Não configurado';
+        const storageType = db ? 'ILIMITADO' : 'LIMITADO';
+        document.getElementById('accountStatus').innerHTML = `📌 Conta atual: <strong>${accountName}</strong> | ${trades.length} registro(s) | Saldo: ${saldoTexto} | 💾 Armazenamento: ${storageType}`;
+        updateAccountSelect();
+        if (trades.length > 0 && systemInitialBalance !== null) recalculateBalances();
+        updateAll();
+    }
+    
+    function updateAccountSelect() {
+        const select = document.getElementById('accountSelect');
         select.innerHTML = '';
-        todasIgrejas.forEach(igreja => {
+        Object.keys(accountsCache).forEach(accName => {
             const option = document.createElement('option');
-            option.value = igreja.id;
-            option.textContent = `${igreja.nome} ${igreja.id === igrejaAtualId ? '✓' : ''}`;
-            if (igreja.id === igrejaAtualId) option.selected = true;
+            option.value = accName;
+            option.textContent = accName;
+            if (accName === currentAccount) option.selected = true;
             select.appendChild(option);
         });
     }
     
-    async function trocarIgreja(id) {
-        if (id == igrejaAtualId) return;
-        showLoading('Trocando de igreja...');
-        try {
-            await salvarIgrejaAtual();
-            igrejaAtualId = parseInt(id);
-            await carregarIgrejaAtual();
-            await atualizarInterface();
-            atualizarSeletor();
-            await updateStorageDisplay();
-        } finally {
-            hideLoading();
+    async function switchAccount() {
+        const select = document.getElementById('accountSelect');
+        const newAccount = select.value;
+        if (newAccount && accountsCache[newAccount]) {
+            if (currentAccount && accountsCache[currentAccount]) {
+                await saveAccountToDB(currentAccount, accountsCache[currentAccount]);
+            }
+            await loadAccountData(newAccount);
         }
     }
     
-    async function adicionarIgreja(nome, endereco) {
-        if (!nome.trim()) return alert('Informe o nome da igreja');
-        showLoading('Adicionando igreja...');
-        try {
-            const novaId = Date.now();
-            todasIgrejas.push({
-                id: novaId,
-                nome: nome.trim(),
-                endereco: endereco || "",
-                transacoes: [],
-                categorias: [{ nome: "Dízimos", tipo: "receita" }, { nome: "Ofertas", tipo: "receita" }],
-                dataCriacao: new Date().toISOString()
-            });
-            await salvarIgrejas(todasIgrejas);
-            await salvarCategorias(novaId, [{ nome: "Dízimos", tipo: "receita" }, { nome: "Ofertas", tipo: "receita" }]);
-            atualizarSeletor();
-            await renderizarListaIgrejas();
-            alert(`✅ Igreja "${nome}" adicionada com sucesso!`);
-            await updateStorageDisplay();
-        } finally {
-            hideLoading();
+    async function createNewAccount() {
+        const newName = document.getElementById('newAccountName').value.trim();
+        if (!newName) {
+            alert('Digite um nome para a nova conta!');
+            return;
+        }
+        if (accountsCache[newName]) {
+            alert('Já existe uma conta com este nome!');
+            return;
+        }
+        accountsCache[newName] = { trades: [], initialBalance: null };
+        await saveAccountToDB(newName, accountsCache[newName]);
+        await loadAccountData(newName);
+        document.getElementById('newAccountName').value = '';
+        alert(`✅ Conta "${newName}" criada com sucesso!`);
+    }
+    
+    async function deleteCurrentAccount() {
+        if (!currentAccount) return;
+        if (Object.keys(accountsCache).length === 1) {
+            alert('❌ Não é possível excluir a única conta. Crie outra conta primeiro.');
+            return;
+        }
+        if (confirm(`Tem certeza que deseja excluir a conta "${currentAccount}"? Todos os dados serão perdidos!`)) {
+            await deleteAccountFromDB(currentAccount);
+            delete accountsCache[currentAccount];
+            const firstAccount = Object.keys(accountsCache)[0];
+            await loadAccountData(firstAccount);
+            alert(`✅ Conta "${currentAccount}" excluída!`);
         }
     }
     
-    async function excluirIgreja(id) {
-        if (todasIgrejas.length <= 1) return alert('❌ Não é possível excluir a única igreja.');
-        if (confirm('Excluir esta igreja e todos os seus dados financeiros?')) {
-            showLoading('Excluindo igreja...');
-            try {
-                // Remover transações da igreja
-                const transaction = db.transaction(['transacoes'], 'readwrite');
-                const store = transaction.objectStore('transacoes');
-                const index = store.index('igrejaId');
-                const range = IDBKeyRange.only(id);
-                const deleteRequest = index.openCursor(range);
-                
-                deleteRequest.onsuccess = (event) => {
-                    const cursor = event.target.result;
-                    if (cursor) {
-                        store.delete(cursor.primaryKey);
-                        cursor.continue();
-                    }
-                };
-                
-                // Remover categorias
-                const catTransaction = db.transaction(['categorias'], 'readwrite');
-                const catStore = catTransaction.objectStore('categorias');
-                const catIndex = catStore.index('igrejaId');
-                const catRange = IDBKeyRange.only(id);
-                const catDeleteRequest = catIndex.openCursor(catRange);
-                
-                catDeleteRequest.onsuccess = (event) => {
-                    const cursor = event.target.result;
-                    if (cursor) {
-                        catStore.delete(cursor.primaryKey);
-                        cursor.continue();
-                    }
-                };
-                
-                // Aguardar exclusões
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                // Remover igreja
-                todasIgrejas = todasIgrejas.filter(i => i.id !== id);
-                if (igrejaAtualId === id) {
-                    igrejaAtualId = todasIgrejas[0].id;
-                    await carregarIgrejaAtual();
+    async function resetCurrentAccount() {
+        if (!currentAccount) return;
+        if (confirm(`Tem certeza que deseja resetar TODOS os dados da conta "${currentAccount}"?`)) {
+            accountsCache[currentAccount].trades = [];
+            accountsCache[currentAccount].initialBalance = null;
+            await saveAccountToDB(currentAccount, accountsCache[currentAccount]);
+            await loadAccountData(currentAccount);
+            closeResetModal();
+            alert(`✅ Conta "${currentAccount}" resetada com sucesso!`);
+        }
+    }
+    
+    async function setInitialBalance() {
+        if (!currentAccount) {
+            alert('Nenhuma conta selecionada!');
+            return;
+        }
+        const newBalance = parseFloat(document.getElementById('globalInitialBalance').value);
+        if (isNaN(newBalance) || newBalance <= 0) {
+            alert('Insira um saldo inicial válido!');
+            return;
+        }
+        accountsCache[currentAccount].initialBalance = newBalance;
+        systemInitialBalance = newBalance;
+        if (accountsCache[currentAccount].trades && accountsCache[currentAccount].trades.length > 0) {
+            trades = accountsCache[currentAccount].trades;
+            recalculateBalances();
+        }
+        await saveAccountToDB(currentAccount, accountsCache[currentAccount]);
+        updateAll();
+        document.getElementById('initialBalanceStatus').style.display = 'block';
+        document.getElementById('initialBalanceStatus').innerHTML = `✅ Saldo inicial de R$ ${systemInitialBalance.toFixed(2)} configurado para conta "${currentAccount}"!`;
+        document.getElementById('accountStatus').innerHTML = `📌 Conta atual: <strong>${currentAccount}</strong> | ${trades.length} registro(s) | Saldo: R$ ${systemInitialBalance.toFixed(2)} | 💾 Armazenamento: ${db ? 'ILIMITADO' : 'LIMITADO'}`;
+    }
+    
+    function recalculateBalances() {
+        if (systemInitialBalance === null || trades.length === 0) return;
+        const tradesByDay = {};
+        trades.forEach(trade => {
+            if (!tradesByDay[trade.date]) tradesByDay[trade.date] = [];
+            tradesByDay[trade.date].push(trade);
+        });
+        const sortedDates = Object.keys(tradesByDay).sort();
+        let lastDayFinalBalance = systemInitialBalance;
+        for (let i = 0; i < sortedDates.length; i++) {
+            const date = sortedDates[i];
+            const dayTrades = tradesByDay[date];
+            dayTrades.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+            let runningBalance = lastDayFinalBalance;
+            for (let j = 0; j < dayTrades.length; j++) {
+                dayTrades[j].initialBalance = runningBalance;
+                const operationalResult = (dayTrades[j].profit || 0) - (dayTrades[j].loss || 0);
+                const externalMovement = (dayTrades[j].deposit || 0) - (dayTrades[j].withdraw || 0);
+                dayTrades[j].totalResult = operationalResult + externalMovement;
+                dayTrades[j].operationalResult = operationalResult;
+                dayTrades[j].partialBalance = runningBalance + dayTrades[j].totalResult;
+                if (runningBalance !== 0) {
+                    dayTrades[j].dailyPercentage = (operationalResult / runningBalance) * 100;
+                } else {
+                    dayTrades[j].dailyPercentage = 0;
                 }
-                await salvarIgrejas(todasIgrejas);
-                atualizarSeletor();
-                await renderizarListaIgrejas();
-                await atualizarInterface();
-                alert('✅ Igreja excluída com sucesso!');
-                await updateStorageDisplay();
-            } finally {
-                hideLoading();
+                runningBalance = dayTrades[j].partialBalance;
+            }
+            lastDayFinalBalance = dayTrades[dayTrades.length - 1].partialBalance;
+            dayTrades.forEach(trade => {
+                trade.finalDayBalance = lastDayFinalBalance;
+            });
+        }
+        const updatedTrades = [];
+        sortedDates.forEach(date => updatedTrades.push(...tradesByDay[date]));
+        trades = updatedTrades;
+        accountsCache[currentAccount].trades = trades;
+    }
+    
+    function setupLotsValidation() {
+        const profitInput = document.getElementById('profitValue');
+        const lossInput = document.getElementById('lossValue');
+        const lotsInput = document.getElementById('tradeLots');
+        function validateLots() {
+            const profit = parseFloat(profitInput.value) || 0;
+            const loss = parseFloat(lossInput.value) || 0;
+            const hasOperation = profit > 0 || loss > 0;
+            if (hasOperation) {
+                lotsInput.required = true;
+                const small = lotsInput.parentElement.querySelector('small');
+                if (small) {
+                    small.innerHTML = '* Obrigatório (há Lucro/Perda)';
+                    small.style.color = '#ff5252';
+                }
+            } else {
+                lotsInput.required = false;
+                const small = lotsInput.parentElement.querySelector('small');
+                if (small) {
+                    small.innerHTML = '* Opcional (apenas Saque/Aporte)';
+                    small.style.color = '#aaa';
+                }
+            }
+        }
+        profitInput.addEventListener('input', validateLots);
+        lossInput.addEventListener('input', validateLots);
+        validateLots();
+    }
+    
+    function getPreviousDayWithTrades(currentDate) {
+        const dates = [...new Set(trades.map(t => t.date))].sort();
+        const currentIndex = dates.indexOf(currentDate);
+        return currentIndex > 0 ? dates[currentIndex - 1] : null;
+    }
+    
+    function updateDailyInitialBalanceDisplay(date) {
+        const tradesToday = trades.filter(t => t.date === date);
+        if (tradesToday.length > 0) {
+            document.getElementById('dailyInitialBalance').value = tradesToday[0].initialBalance.toFixed(2);
+        } else if (systemInitialBalance !== null) {
+            const prevDay = getPreviousDayWithTrades(date);
+            if (prevDay) {
+                const lastPrev = trades.filter(t => t.date === prevDay).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+                document.getElementById('dailyInitialBalance').value = lastPrev.finalDayBalance.toFixed(2);
+            } else {
+                document.getElementById('dailyInitialBalance').value = systemInitialBalance.toFixed(2);
             }
         }
     }
     
-    async function renderizarListaIgrejas() {
-        const container = document.getElementById('listaIgrejas');
-        if (!container) return;
-        container.innerHTML = '<h4>📌 Igrejas Cadastradas</h4>';
-        
-        for (const igreja of todasIgrejas) {
-            const transacoesIgreja = await carregarTransacoes(igreja.id);
-            const div = document.createElement('div');
-            div.className = 'categoria-item';
-            div.innerHTML = `
-                <span><strong>${igreja.nome}</strong> ${igreja.id === igrejaAtualId ? '(ATUAL)' : ''}<br>
-                <small>${igreja.endereco || 'Sem endereço'} | Transações: ${transacoesIgreja.length}</small></span>
-                <button onclick="excluirIgreja(${igreja.id})" style="background:#ef4444;">✖️</button>
-            `;
-            container.appendChild(div);
+    document.getElementById('tradeForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        if (!currentAccount) {
+            alert('⚠️ Nenhuma conta selecionada!');
+            return;
         }
-    }
-    
-    // Funções auxiliares (mantidas iguais, mas com async)
-    async function atualizarInterface() {
-        await atualizarCards();
-        atualizarSelectCategorias();
-        await renderizarTabela();
-        await renderizarCategorias();
-        await renderizarListaIgrejas();
-        renderizarGraficos();
-        await atualizarUltimasTransacoes();
-    }
-    
-    function atualizarCards() {
-        let totalRec = 0, totalDesp = 0;
-        transacoes.forEach(t => {
-            if (t.tipo === 'receita') totalRec += t.valor;
-            else totalDesp += t.valor;
-        });
-        document.getElementById('totalReceitas').innerHTML = `R$ ${totalRec.toFixed(2)}`;
-        document.getElementById('totalDespesas').innerHTML = `R$ ${totalDesp.toFixed(2)}`;
-        document.getElementById('saldoTotal').innerHTML = `R$ ${(totalRec - totalDesp).toFixed(2)}`;
-    }
-    
-    function atualizarSelectCategorias() {
-        const select = document.getElementById('categoriaSelect');
-        if (!select) return;
-        select.innerHTML = '';
-        categorias.forEach(cat => {
-            const opt = document.createElement('option');
-            opt.value = cat.nome;
-            opt.textContent = `${cat.nome} (${cat.tipo})`;
-            select.appendChild(opt);
-        });
-    }
-    
-    async function renderizarTabela() {
-        const tbody = document.querySelector('#tabelaTransacoes tbody');
-        if (!tbody) return;
-        tbody.innerHTML = '';
-        [...transacoes].reverse().forEach(t => {
-            const row = tbody.insertRow();
-            row.insertCell(0).textContent = t.data;
-            row.insertCell(1).innerHTML = `<span class="badge ${t.tipo === 'receita' ? 'badge-receita' : 'badge-despesa'}">${t.tipo === 'receita' ? 'Receita' : 'Despesa'}</span>`;
-            row.insertCell(2).textContent = t.categoria;
-            row.insertCell(3).textContent = t.descricao || '-';
-            row.insertCell(4).textContent = `R$ ${t.valor.toFixed(2)}`;
-            const acoes = row.insertCell(5);
-            const btnDel = document.createElement('button');
-            btnDel.innerHTML = '<i class="fas fa-trash"></i>';
-            btnDel.style.background = '#dc2626';
-            btnDel.onclick = async () => {
-                if (confirm('Excluir transação?')) {
-                    transacoes = transacoes.filter(x => x.id !== t.id);
-                    await salvarIgrejaAtual();
-                    await atualizarInterface();
-                }
-            };
-            acoes.appendChild(btnDel);
-        });
-    }
-    
-    async function renderizarCategorias() {
-        const container = document.getElementById('listaCategorias');
-        if (!container) return;
-        container.innerHTML = '<h4>📌 Categorias Disponíveis</h4>';
-        categorias.forEach((cat, idx) => {
-            const div = document.createElement('div');
-            div.className = 'categoria-item';
-            div.innerHTML = `<span><strong>${cat.nome}</strong> (${cat.tipo})</span>
-                           <button onclick="excluirCategoria(${idx})" style="background:#ef4444;">✖️</button>`;
-            container.appendChild(div);
-        });
-    }
-    
-    window.excluirCategoria = async function(idx) {
-        const catNome = categorias[idx].nome;
-        if (transacoes.some(t => t.categoria === catNome)) {
-            alert(`❌ Não é possível excluir "${catNome}" pois há transações vinculadas.`);
+        if (systemInitialBalance === null) {
+            alert('⚠️ Primeiro configure o saldo inicial da conta!');
+            return;
+        }
+        const date = document.getElementById('tradeDate').value;
+        const profit = parseFloat(document.getElementById('profitValue').value) || 0;
+        const loss = parseFloat(document.getElementById('lossValue').value) || 0;
+        const withdraw = parseFloat(document.getElementById('withdrawValue').value) || 0;
+        const deposit = parseFloat(document.getElementById('depositValue').value) || 0;
+        const lots = parseFloat(document.getElementById('tradeLots').value);
+        const asset = document.getElementById('tradeAsset').value || '-';
+        const note = document.getElementById('tradeNote').value || '';
+        if (!date) {
+            alert('Preencha a data!');
+            return;
+        }
+        if (profit === 0 && loss === 0 && withdraw === 0 && deposit === 0) {
+            alert('Preencha pelo menos um campo: Lucro, Perda, Saque ou Aporte!');
+            return;
+        }
+        const hasOperation = profit > 0 || loss > 0;
+        if (hasOperation && (!lots || lots <= 0)) {
+            alert('Quando houver Lucro ou Perda, o campo LOTES é obrigatório!');
+            return;
+        }
+        let initialBalanceForDay = systemInitialBalance;
+        const tradesThisDay = trades.filter(t => t.date === date);
+        if (tradesThisDay.length > 0) {
+            const lastTradeToday = tradesThisDay.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+            initialBalanceForDay = lastTradeToday.partialBalance;
         } else {
-            categorias.splice(idx, 1);
-            await salvarIgrejaAtual();
-            await atualizarInterface();
-        }
-    };
-    
-    let graficoBarra, graficoPizza;
-    function renderizarGraficos() {
-        const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-        let receitas = new Array(12).fill(0);
-        let despesas = new Array(12).fill(0);
-        
-        transacoes.forEach(t => {
-            const mes = new Date(t.data).getMonth();
-            if (t.tipo === 'receita') receitas[mes] += t.valor;
-            else despesas[mes] += t.valor;
-        });
-        
-        const ctxBar = document.getElementById('graficoMensal')?.getContext('2d');
-        if (ctxBar) {
-            if (graficoBarra) graficoBarra.destroy();
-            graficoBarra = new Chart(ctxBar, {
-                type: 'bar',
-                data: {
-                    labels: meses, datasets: [
-                        { label: 'Receitas', data: receitas, backgroundColor: '#10b981' },
-                        { label: 'Despesas', data: despesas, backgroundColor: '#ef4444' }
-                    ]
-                }
-            });
-        }
-        
-        let despPorCat = {};
-        transacoes.filter(t => t.tipo === 'despesa').forEach(t => {
-            despPorCat[t.categoria] = (despPorCat[t.categoria] || 0) + t.valor;
-        });
-        
-        const ctxPizza = document.getElementById('graficoPizza')?.getContext('2d');
-        if (ctxPizza) {
-            if (graficoPizza) graficoPizza.destroy();
-            graficoPizza = new Chart(ctxPizza, {
-                type: 'pie',
-                data: { labels: Object.keys(despPorCat), datasets: [{ data: Object.values(despPorCat), backgroundColor: ['#f59e0b', '#ef4444', '#8b5cf6', '#10b981'] }] }
-            });
-        }
-    }
-    
-    async function atualizarUltimasTransacoes() {
-        const tbody = document.querySelector('#ultimasTransacoes tbody');
-        if (tbody) {
-            tbody.innerHTML = '';
-            transacoes.slice(-5).reverse().forEach(t => {
-                const row = tbody.insertRow();
-                row.insertCell(0).textContent = t.data;
-                row.insertCell(1).textContent = t.descricao || t.categoria;
-                row.insertCell(2).textContent = t.categoria;
-                row.insertCell(3).innerHTML = `<strong>R$ ${t.valor.toFixed(2)}</strong>`;
-            });
-        }
-    }
-    
-    function gerarRelatorio(mes, ano) {
-        const filtradas = transacoes.filter(t => {
-            const d = new Date(t.data);
-            return d.getMonth() + 1 === mes && d.getFullYear() === ano;
-        });
-        
-        let rec = 0, desp = 0;
-        let html = `<h4>📊 Relatório - ${mes}/${ano}</h4>
-                   <div class="table-responsive">
-                   <table style="width:100%; border-collapse:collapse;">
-                    <thead><tr style="background:#064e3b; color:white;"><th style="padding:12px;">Data</th><th style="padding:12px;">Tipo</th><th style="padding:12px;">Categoria</th><th style="padding:12px;">Descrição</th><th style="padding:12px;">Valor</th></tr></thead>
-                    <tbody>`;
-        
-        if (filtradas.length === 0) {
-            html += `<tr><td colspan="5" style="text-align:center; padding:40px;">📭 Nenhuma transação encontrada para este período</td></tr>`;
-        } else {
-            filtradas.forEach(t => {
-                html += `<tr style="border-bottom:1px solid #e5e7eb;">
-                            <td style="padding:10px;">${t.data}</td>
-                            <td style="padding:10px;">${t.tipo === 'receita' ? '💰 Receita' : '📉 Despesa'}</td>
-                            <td style="padding:10px;">${t.categoria}</td>
-                            <td style="padding:10px;">${t.descricao || '-'}</td>
-                            <td style="padding:10px;">R$ ${t.valor.toFixed(2)}</td>
-                          </tr>`;
-                if (t.tipo === 'receita') rec += t.valor;
-                else desp += t.valor;
-            });
-        }
-        
-        html += `<tr style="font-weight:bold; background:#f3f4f6;"><td colspan="4" style="padding:12px;">TOTAIS</td>
-                   <td style="padding:12px;">
-                        Receitas: R$ ${rec.toFixed(2)}<br>
-                        Despesas: R$ ${desp.toFixed(2)}<br>
-                        <span style="color:${rec - desp >= 0 ? '#10b981' : '#ef4444'}; font-size:1.1em;">Saldo: R$ ${(rec - desp).toFixed(2)}</span>
-                    </td>
-                  </tr>
-                 </tbody>
-                </table>
-                </div>
-                <div style="margin-top:20px; text-align:right; font-size:12px; color:#666;">
-                     <i class="fas fa-church"></i> Relatório gerado pelo sistema CONBCD Finanças | ${new Date().toLocaleString()}
-                </div>`;
-        
-        const conteudoRelatorio = document.getElementById('conteudoRelatorio');
-        if (conteudoRelatorio) conteudoRelatorio.innerHTML = html;
-    }
-    
-    async function exportarBackup() {
-        showLoading('Gerando backup...');
-        try {
-            const todasTransacoes = [];
-            for (const igreja of todasIgrejas) {
-                const transacoesIgreja = await carregarTransacoes(igreja.id);
-                todasTransacoes.push(...transacoesIgreja);
+            const previousDay = getPreviousDayWithTrades(date);
+            if (previousDay) {
+                const lastTradePrev = trades.filter(t => t.date === previousDay).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+                initialBalanceForDay = lastTradePrev.finalDayBalance;
             }
-            
-            const dump = {
-                todasIgrejas: todasIgrejas,
-                igrejaAtualId: igrejaAtualId,
-                versao: "CONBCD-FINANCAS-v4.0-INDEXEDDB",
-                data: new Date().toISOString(),
-                totalIgrejas: todasIgrejas.length,
-                totalTransacoes: todasTransacoes.length,
-                tipoArmazenamento: "IndexedDB - Ilimitado"
-            };
-            
-            const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
-            const link = document.createElement('a');
+        }
+        const operationalResult = profit - loss;
+        const externalMovement = deposit - withdraw;
+        const totalResult = operationalResult + externalMovement;
+        const newTrade = {
+            id: Date.now(),
+            date: date,
+            initialBalance: initialBalanceForDay,
+            profit: profit,
+            loss: loss,
+            withdraw: withdraw,
+            deposit: deposit,
+            operationalResult: operationalResult,
+            totalResult: totalResult,
+            lots: lots || 0,
+            asset: asset,
+            note: note,
+            partialBalance: initialBalanceForDay + totalResult,
+            finalDayBalance: initialBalanceForDay + totalResult,
+            dailyPercentage: (operationalResult / initialBalanceForDay) * 100,
+            timestamp: new Date().toISOString()
+        };
+        trades.push(newTrade);
+        accountsCache[currentAccount].trades = trades;
+        recalculateBalances();
+        await saveAccountToDB(currentAccount, accountsCache[currentAccount]);
+        updateAll();
+        document.getElementById('profitValue').value = '';
+        document.getElementById('lossValue').value = '';
+        document.getElementById('withdrawValue').value = '';
+        document.getElementById('depositValue').value = '';
+        document.getElementById('tradeLots').value = '';
+        document.getElementById('tradeAsset').value = '';
+        document.getElementById('tradeNote').value = '';
+        updateDailyInitialBalanceDisplay(date);
+        if (hasOperation) alert('✅ Operação registrada! Rentabilidade calculada apenas sobre lucro/perda.');
+        else alert('✅ Saque/Aporte registrado! Saldo atualizado, mas não afeta a rentabilidade %');
+    });
+    
+    function downloadFile(data, fileName, mimeType) {
+        try {
+            const blob = new Blob([data], { type: mimeType });
             const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
             link.href = url;
-            link.download = `CONBCD_backup_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`;
+            link.download = fileName;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-            
-            alert(`✅ Backup completo gerado com sucesso!\n📊 Dados: ${dump.totalTransacoes} transações de ${dump.totalIgrejas} igrejas.\n💾 Capacidade: Armazenamento Ilimitado (IndexedDB)\n📁 Arquivo salvo na pasta de downloads.`);
-        } finally {
-            hideLoading();
+            return true;
+        } catch (error) {
+            console.error('Erro no download:', error);
+            return false;
         }
     }
     
-    async function restaurarBackup(file) {
+    function exportToExcel() {
+        if (!trades.length) { alert('❌ Sem dados para exportar!'); return; }
+        try {
+            const data = trades.map(t => ({
+                '📅 Data': t.date,
+                '💰 Saldo Antes': `R$ ${(t.initialBalance || 0).toFixed(2)}`,
+                '📈 Lucro': `R$ ${(t.profit || 0).toFixed(2)}`,
+                '📉 Perda': `R$ ${(t.loss || 0).toFixed(2)}`,
+                '🏧 Saque': `R$ ${(t.withdraw || 0).toFixed(2)}`,
+                '💵 Aporte': `R$ ${(t.deposit || 0).toFixed(2)}`,
+                '📊 Resultado Op.': `R$ ${(t.operationalResult || 0).toFixed(2)}`,
+                '📈 % Operacional': `${(t.dailyPercentage || 0).toFixed(2)}%`,
+                '🎯 Lotes': t.lots || 0,
+                '📊 Ativo': t.asset || '-',
+                '🏁 Saldo Final': `R$ ${(t.finalDayBalance || 0).toFixed(2)}`,
+                '📝 Observação': t.note || ''
+            }));
+            const worksheet = XLSX.utils.json_to_sheet(data);
+            worksheet['!cols'] = [{ wch: 14 }, { wch: 16 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 18 }, { wch: 14 }, { wch: 10 }, { wch: 15 }, { wch: 16 }, { wch: 30 }];
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, `Relatorio_${currentAccount}`);
+            const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+            const fileName = `ImperioFXJF_${currentAccount}_${new Date().toISOString().split('T')[0]}.xlsx`;
+            downloadFile(excelBuffer, fileName, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            alert('✅ Excel exportado com sucesso!');
+        } catch (error) { console.error('Erro Excel:', error); alert('❌ Erro ao exportar Excel!'); }
+    }
+    
+    function generatePDF() {
+        if (!trades.length) { alert('❌ Sem dados para exportar!'); return; }
+        try {
+            const totalProfit = trades.reduce((sum, t) => sum + (t.profit || 0), 0);
+            const totalLoss = trades.reduce((sum, t) => sum + (t.loss || 0), 0);
+            const totalWithdraw = trades.reduce((sum, t) => sum + (t.withdraw || 0), 0);
+            const totalDeposit = trades.reduce((sum, t) => sum + (t.deposit || 0), 0);
+            const totalOperational = totalProfit - totalLoss;
+            const finalBalance = trades[trades.length - 1].finalDayBalance || systemInitialBalance;
+            const totalPercent = systemInitialBalance ? ((totalOperational / systemInitialBalance) * 100).toFixed(2) : '0.00';
+            let rows = '';
+            trades.forEach((t, i) => {
+                rows += `<tr style="border-bottom: 1px solid #ddd;"><td style="padding: 8px; text-align: center;">${i + 1}<td style="padding: 8px;">${t.date}<td style="padding: 8px; text-align: right; color: #4caf50;">R$ ${(t.profit || 0).toFixed(2)}<td style="padding: 8px; text-align: right; color: #ff5252;">R$ ${(t.loss || 0).toFixed(2)}<td style="padding: 8px; text-align: right; color: #ff5252;">R$ ${(t.withdraw || 0).toFixed(2)}<td style="padding: 8px; text-align: right; color: #4caf50;">R$ ${(t.deposit || 0).toFixed(2)}<td style="padding: 8px; text-align: right; font-weight: bold;">R$ ${(t.operationalResult || 0).toFixed(2)}<td style="padding: 8px; text-align: right;">${(t.dailyPercentage || 0).toFixed(2)}%<td style="padding: 8px;">${t.asset || '-'}</tr>`;
+            });
+            const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Império FX JF</title><style>body{font-family:Arial;margin:20px}h1{color:#ffd700;text-align:center}.summary{border:2px solid #333;padding:15px;margin-bottom:25px;border-radius:10px}.summary h3{margin-top:0;color:#ffd700}table{width:100%;border-collapse:collapse;margin-top:20px}th{background:#ffd700;color:#000;padding:10px;text-align:center}</style></head><body><div class="header"><h1>🏛️ IMPÉRIO FX JF</h1><h2>Gestão Financeira do Trader</h2><p><strong>Conta:</strong> ${currentAccount}</p><p><strong>Data:</strong> ${new Date().toLocaleString()}</p></div><div class="summary"><h3>📊 RESUMO EXECUTIVO</h3><p><strong>💰 Saldo Inicial:</strong> R$ ${(systemInitialBalance || 0).toFixed(2)}</p><p><strong>📈 Lucro Total:</strong> R$ ${totalProfit.toFixed(2)}</p><p><strong>📉 Perda Total:</strong> R$ ${totalLoss.toFixed(2)}</p><p><strong>📊 Resultado Operacional:</strong> R$ ${totalOperational.toFixed(2)}</p><p><strong>📈 Rentabilidade Total:</strong> ${totalPercent}%</p><p><strong>🏧 Total Saques:</strong> R$ ${totalWithdraw.toFixed(2)}</p><p><strong>💵 Total Aportes:</strong> R$ ${totalDeposit.toFixed(2)}</p><p><strong>🏁 Saldo Final:</strong> R$ ${finalBalance.toFixed(2)}</p><p><strong>📝 Total de Registros:</strong> ${trades.length}</p></div><h3>📋 DETALHAMENTO</h3><tr><thead><tr><th>#</th><th>Data</th><th>Lucro</th><th>Perda</th><th>Saque</th><th>Aporte</th><th>Res.Op</th><th>%</th><th>Ativo</th></tr></thead><tbody>${rows}</tbody></table><div class="footer"><p>IMPÉRIO FX JF - Sistema Profissional</p></div></body></html>`;
+            const fileName = `ImperioFXJF_Relatorio_${currentAccount}_${new Date().toISOString().split('T')[0]}.pdf`;
+            html2pdf().set({ margin: 10, filename: fileName, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }).from(htmlContent).save();
+            setTimeout(() => alert('✅ PDF gerado com sucesso!'), 1000);
+        } catch (error) { console.error('Erro PDF:', error); alert('❌ Erro ao gerar PDF!'); }
+    }
+    
+    function exportToWord() {
+        if (!trades.length) { alert('❌ Sem dados para exportar!'); return; }
+        try {
+            const totalProfit = trades.reduce((sum, t) => sum + (t.profit || 0), 0);
+            const totalLoss = trades.reduce((sum, t) => sum + (t.loss || 0), 0);
+            const totalWithdraw = trades.reduce((sum, t) => sum + (t.withdraw || 0), 0);
+            const totalDeposit = trades.reduce((sum, t) => sum + (t.deposit || 0), 0);
+            const totalOperational = totalProfit - totalLoss;
+            const finalBalance = trades[trades.length - 1].finalDayBalance || systemInitialBalance;
+            const totalPercent = systemInitialBalance ? ((totalOperational / systemInitialBalance) * 100).toFixed(2) : '0.00';
+            let rows = '';
+            trades.forEach((t, i) => {
+                rows += `<tr><td>${i + 1}</td><td>${t.date}</td><td>R$ ${(t.profit || 0).toFixed(2)}</td><td>R$ ${(t.loss || 0).toFixed(2)}</td><td>R$ ${(t.withdraw || 0).toFixed(2)}</td><td>R$ ${(t.deposit || 0).toFixed(2)}</td><td>R$ ${(t.operationalResult || 0).toFixed(2)}</td><td>${(t.dailyPercentage || 0).toFixed(2)}%</td><td>${t.asset || '-'}</td></tr>`;
+            });
+            const htmlContent = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Império FX JF</title><style>body{font-family:'Segoe UI',Arial;margin:30px}h1{color:#ffd700;text-align:center}.summary{border:2px solid #333;padding:15px;margin-bottom:25px;background:#f9f9f9}.summary h3{margin-top:0;color:#d4a000}table{width:100%;border-collapse:collapse;margin-top:20px}th{background:#ffd700;color:#000;padding:10px;border:1px solid #000}td{padding:8px;border:1px solid #ccc}</style></head><body><div class="header"><h1>🏛️ IMPÉRIO FX JF</h1><h2>Gestão Financeira do Trader</h2><p><strong>Conta:</strong> ${currentAccount}</p><p><strong>Data:</strong> ${new Date().toLocaleString()}</p></div><div class="summary"><h3>📊 RESUMO</h3><p><strong>Saldo Inicial:</strong> R$ ${(systemInitialBalance || 0).toFixed(2)}</p><p><strong>Lucro Total:</strong> R$ ${totalProfit.toFixed(2)}</p><p><strong>Perda Total:</strong> R$ ${totalLoss.toFixed(2)}</p><p><strong>Resultado:</strong> R$ ${totalOperational.toFixed(2)}</p><p><strong>Rentabilidade:</strong> ${totalPercent}%</p><p><strong>Saldo Final:</strong> R$ ${finalBalance.toFixed(2)}</p></div><h3>📋 OPERAÇÕES</h3><table><thead><tr><th>#</th><th>Data</th><th>Lucro</th><th>Perda</th><th>Saque</th><th>Aporte</th><th>Res.Op</th><th>%</th><th>Ativo</th></tr></thead><tbody>${rows}</tbody></table><div class="footer"><p>IMPÉRIO FX JF - Sistema Profissional</p></div></body></html>`;
+            const fileName = `ImperioFXJF_Word_${currentAccount}_${new Date().toISOString().split('T')[0]}.doc`;
+            const blob = new Blob([htmlContent], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            alert('✅ Word exportado com sucesso!');
+        } catch (error) { console.error('Erro Word:', error); alert('❌ Erro ao exportar Word!'); }
+    }
+    
+    async function exportBackup() {
+        try {
+            const allAccounts = await getAllAccounts();
+            const backupData = {
+                version: '3.0',
+                exportDate: new Date().toISOString(),
+                accounts: allAccounts,
+                currentAccount: currentAccount,
+                lastAccount: await getSetting('last_account'),
+                theme: await getSetting('theme') || 'dark',
+                totalAccounts: Object.keys(allAccounts).length,
+                totalTrades: Object.values(allAccounts).reduce((sum, acc) => sum + (acc.trades?.length || 0), 0),
+                storageType: db ? 'IndexedDB (ilimitado)' : 'localStorage (limitado)'
+            };
+            const backupJSON = JSON.stringify(backupData, null, 2);
+            const fileName = `ImperioFXJF_Backup_${currentAccount}_${new Date().toISOString().split('T')[0]}.json`;
+            if (downloadFile(backupJSON, fileName, 'application/json')) {
+                alert(`✅ Backup completo exportado!\n📦 Contas: ${Object.keys(allAccounts).length}\n📊 Registros: ${backupData.totalTrades}\n💾 Tipo: ${backupData.storageType}`);
+            } else throw new Error('Falha no download');
+        } catch (error) { console.error('Erro Backup:', error); alert('❌ Erro ao exportar backup!'); }
+    }
+    
+    async function importBackup(input) {
+        const file = input.files[0];
+        if (!file) { alert('❌ Nenhum arquivo selecionado!'); return; }
+        if (!file.name.endsWith('.json')) { alert('❌ Por favor, selecione um arquivo JSON válido!'); input.value = ''; return; }
         const reader = new FileReader();
         reader.onload = async function(e) {
-            showLoading('Restaurando backup...');
             try {
-                const data = JSON.parse(e.target.result);
-                if (data.todasIgrejas && data.igrejaAtualId !== undefined) {
-                    // Limpar banco atual
-                    const transaction = db.transaction(['igrejas', 'transacoes', 'categorias'], 'readwrite');
-                    transaction.objectStore('igrejas').clear();
-                    transaction.objectStore('transacoes').clear();
-                    transaction.objectStore('categorias').clear();
-                    
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    
-                    // Restaurar dados
-                    todasIgrejas = data.todasIgrejas;
-                    igrejaAtualId = data.igrejaAtualId;
-                    await salvarIgrejas(todasIgrejas);
-                    
-                    // Restaurar transações
-                    for (const igreja of todasIgrejas) {
-                        if (igreja.transacoes && igreja.transacoes.length > 0) {
-                            await salvarTransacoes(igreja.id, igreja.transacoes);
-                        } else {
-                            const transacoesAntigas = await carregarTransacoes(igreja.id);
-                            if (transacoesAntigas.length > 0) {
-                                await salvarTransacoes(igreja.id, transacoesAntigas);
-                            }
-                        }
-                        
-                        if (igreja.categorias && igreja.categorias.length > 0) {
-                            await salvarCategorias(igreja.id, igreja.categorias);
-                        }
-                    }
-                    
-                    await carregarIgrejaAtual();
-                    atualizarSeletor();
-                    await atualizarInterface();
-                    await updateStorageDisplay();
-                    alert(`✅ Backup restaurado com sucesso!\n📊 ${data.totalTransacoes || 'Várias'} transações restauradas.\n💾 Armazenamento ilimitado ativo!`);
-                } else {
-                    throw new Error('Formato inválido');
+                const backupData = JSON.parse(e.target.result);
+                if (!backupData.accounts || typeof backupData.accounts !== 'object') {
+                    alert('❌ Arquivo de backup inválido! Estrutura de dados incorreta.');
+                    input.value = '';
+                    return;
                 }
-            } catch (error) {
-                console.error('Erro ao restaurar:', error);
-                alert('❌ Arquivo de backup inválido. Verifique o arquivo e tente novamente.');
-            } finally {
-                hideLoading();
-            }
+                const totalRegistros = Object.values(backupData.accounts).reduce((sum, acc) => sum + (acc.trades?.length || 0), 0);
+                const confirmMsg = `⚠️ ATENÇÃO: Isso irá substituir TODOS os dados atuais!\n\n📦 Contas no backup: ${Object.keys(backupData.accounts).length}\n📊 Total de registros: ${totalRegistros}\n💾 Tipo de armazenamento: ${db ? 'ILIMITADO (IndexedDB)' : 'Limitado (localStorage)'}\n\nDeseja continuar?`;
+                if (confirm(confirmMsg)) {
+                    for (const [accName, accData] of Object.entries(backupData.accounts)) await saveAccountToDB(accName, accData);
+                    accountsCache = await getAllAccounts();
+                    currentAccount = backupData.currentAccount || Object.keys(accountsCache)[0];
+                    if (backupData.lastAccount) await setSetting('last_account', backupData.lastAccount);
+                    if (backupData.theme) {
+                        await setSetting('theme', backupData.theme);
+                        if (backupData.theme === 'light') document.body.classList.add('light-mode');
+                        else document.body.classList.remove('light-mode');
+                    }
+                    await loadAccountData(currentAccount);
+                    alert(`✅ Backup restaurado com sucesso!\n📦 ${Object.keys(accountsCache).length} conta(s) carregada(s)\n📊 ${totalRegistros} registro(s) no total\n💾 Agora usando armazenamento ${db ? 'ILIMITADO' : 'LIMITADO'}`);
+                }
+            } catch (error) { console.error('Erro ao importar:', error); alert('❌ Erro ao ler o arquivo de backup. Verifique se o arquivo é válido.'); }
+            input.value = '';
         };
+        reader.onerror = function() { alert('❌ Erro ao ler o arquivo!'); input.value = ''; };
         reader.readAsText(file);
     }
     
-    // Funções de impressão (mantidas do código anterior)
-    function imprimirRelatorio() {
-        const conteudo = document.getElementById('conteudoRelatorio');
-        if (!conteudo || !conteudo.innerHTML || conteudo.innerHTML.trim() === '' || conteudo.innerHTML.includes('Nenhuma transação encontrada para este período')) {
-            alert('⚠️ Gere um relatório primeiro clicando em "Gerar" antes de imprimir!');
-            return false;
+    function calculateGridDistance() {
+        const lotSize = parseFloat(document.getElementById('gridLotSize').value);
+        const distancePoints = parseFloat(document.getElementById('gridDistance').value);
+        const pointValue = parseFloat(document.getElementById('gridPointValue').value);
+        const totalDistance = parseFloat(document.getElementById('gridTotalDistance').value);
+        if (isNaN(lotSize) || lotSize <= 0) { alert('❌ Por favor, insira um valor válido para o LOTE!'); return; }
+        if (isNaN(distancePoints) || distancePoints <= 0) { alert('❌ Por favor, insira um valor válido para o DISTANCIAMENTO!'); return; }
+        if (isNaN(pointValue) || pointValue <= 0) { alert('❌ Por favor, insira um valor válido para o VALOR POR PONTO!'); return; }
+        if (isNaN(totalDistance) || totalDistance <= 0) { alert('❌ Por favor, insira um valor válido para a DISTÂNCIA TOTAL!'); return; }
+        const numberOfIntervals = Math.floor(totalDistance / distancePoints);
+        const numberOfOrders = numberOfIntervals + 1;
+        let ordersDetails = [];
+        let totalCostAllOrders = 0;
+        for (let i = 0; i < numberOfOrders; i++) {
+            const distanceThisOrder = Math.max(0, totalDistance - (i * distancePoints));
+            const orderCost = lotSize * pointValue * distanceThisOrder;
+            ordersDetails.push({ ordem: i, distanciaDoInicio: i * distancePoints, distanciaPercorrida: distanceThisOrder, custoIndividual: orderCost });
+            totalCostAllOrders += orderCost;
         }
-        
-        const igrejaAtual = todasIgrejas.find(i => i.id === igrejaAtualId);
-        const nomeIgreja = igrejaAtual ? igrejaAtual.nome : 'CONBCD Finanças';
-        
-        const htmlContent = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Relatório - ${nomeIgreja}</title>
-                <style>
-                    * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px; background: white; }
-                    .print-container { max-width: 100%; margin: 0 auto; }
-                    .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #064e3b; }
-                    .header h1 { color: #064e3b; margin: 0 0 10px 0; font-size: 24px; }
-                    .header h2 { color: #047857; margin: 0 0 10px 0; font-size: 18px; }
-                    .header p { color: #666; margin: 5px 0; font-size: 12px; }
-                    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-                    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 12px; }
-                    th { background-color: #064e3b; color: white; font-weight: bold; }
-                    .footer { text-align: center; margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 10px; color: #999; }
-                    @media print { body { padding: 0; margin: 0; } }
-                </style>
-            </head>
-            <body>
-                <div class="print-container">
-                    <div class="header">
-                        <h1>${nomeIgreja}</h1>
-                        <h2>RELATÓRIO FINANCEIRO</h2>
-                        <p>Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
-                        <p>Sistema CONBCD Finanças - Armazenamento Ilimitado</p>
-                    </div>
-                    <div class="content">${conteudo.innerHTML}</div>
-                    <div class="footer">
-                        <p>Documento gerado eletronicamente pelo sistema CONBCD Finanças</p>
-                        <p>© ${new Date().getFullYear()} CONBCD - Todos os direitos reservados</p>
-                    </div>
-                </div>
-                <script>window.onload = function() { setTimeout(function() { window.print(); }, 500); };<\/script>
-            </body>
-            </html>
-        `;
-        
-        const modal = document.createElement('div');
-        modal.className = 'print-modal';
-        modal.innerHTML = `
-            <div class="print-modal-header">
-                <h3><i class="fas fa-print"></i> Visualização do Relatório</h3>
-                <div class="print-btn-group">
-                    <button id="confirmPrintBtn" style="background: #10b981; color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer;">
-                        <i class="fas fa-print"></i> Imprimir Agora
-                    </button>
-                    <button id="closePrintModal" class="close-print-btn">
-                        <i class="fas fa-times"></i> Fechar
-                    </button>
-                </div>
-            </div>
-            <div class="print-modal-content">
-                <iframe id="printFrame" style="width: 100%; height: 100%; border: none;"></iframe>
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
-        
-        const iframe = document.getElementById('printFrame');
-        const iframeDoc = iframe.contentWindow.document || iframe.contentDocument;
-        iframeDoc.open();
-        iframeDoc.write(htmlContent);
-        iframeDoc.close();
-        
-        document.getElementById('confirmPrintBtn').onclick = function() {
-            try {
-                iframe.contentWindow.print();
-            } catch (e) {
-                const win = window.open('', '_blank');
-                win.document.write(htmlContent);
-                win.document.close();
-                win.print();
-            }
-        };
-        
-        document.getElementById('closePrintModal').onclick = function() {
-            modal.remove();
-        };
-        
-        return true;
+        const ordersReversed = [...ordersDetails].reverse();
+        let runningTotal = 0;
+        let ordersWithAccumulated = ordersReversed.map(order => { runningTotal += order.custoIndividual; return { ...order, custoAcumulado: runningTotal }; });
+        const maxOrderCost = ordersDetails[0].custoIndividual;
+        let resultHTML = `<strong>📊 RESULTADO DO GRID PROGRESSIVO</strong><br><br><div class="grid-lotes-destaque">📈 ${numberOfOrders} ORDENS NO TOTAL</div><div>🔹 Ordem mais distante (posição 0): ${lotSize} lote(s)</div><div>🔹 Distanciamento: ${distancePoints.toLocaleString()} pontos entre ordens</div><div>🔹 Cobertura total: ${totalDistance.toLocaleString()} pontos</div><hr style="margin: 10px 0; border-color: #3a3f5e;"><div><strong>💰 Valor por ponto:</strong> R$ ${pointValue.toFixed(6)}</div><div><strong>💰 Custo da ordem mais distante:</strong> R$ ${maxOrderCost.toFixed(2)}</div><div><strong>📊 Custo da ordem mais próxima:</strong> R$ ${ordersDetails[numberOfOrders-1].custoIndividual.toFixed(2)}</div><hr style="margin: 10px 0; border-color: #3a3f5e;"><div><strong>💰 Custo TOTAL:</strong> <span class="profit-positive" style="font-size: 1.3em;">R$ ${totalCostAllOrders.toFixed(2)}</span></div><div><strong>📊 Custo médio por ordem:</strong> R$ ${(totalCostAllOrders / numberOfOrders).toFixed(2)}</div><hr style="margin: 15px 0; border-color: #3a3f5e;"><div style="text-align: left;"><strong>📋 DETALHAMENTO ORDEM POR ORDEM:</strong></div><div style="text-align: left; max-height: 350px; overflow-y: auto; margin-top: 10px;"><table class="grid-info-table" style="width: 100%; font-size: 0.85em;"><thead><tr style="background: rgba(255,215,0,0.2);"><th># Ordem</th><th>Distância do Início</th><th>Distância Percorrida</th><th>Custo Individual</th><th>Custo Acumulado</th><th>% do Total</th></tr></thead><tbody>`;
+        ordersWithAccumulated.forEach((order, idx) => {
+            const percentage = (order.custoIndividual / totalCostAllOrders * 100).toFixed(1);
+            resultHTML += `<tr><td style="text-align: center;"><strong>${order.ordem}</strong></td><td style="text-align: right;">${order.distanciaDoInicio.toLocaleString()} pts</td><td style="text-align: right;">${order.distanciaPercorrida.toLocaleString()} pts</td><td style="text-align: right; color: #ffd700;">R$ ${order.custoIndividual.toFixed(2)}</td><td style="text-align: right;">R$ ${order.custoAcumulado.toFixed(2)}</td><td style="text-align: center;">${percentage}%</td></tr>`;
+        });
+        resultHTML += `</tbody></table></div><div style="margin-top: 15px; padding: 10px; background: rgba(76,175,80,0.2); border-radius: 10px; text-align: center;"><strong>✅ RESUMO DA ESCALA PROGRESSIVA:</strong><br>📌 Ordem mais distante: <strong>R$ ${ordersDetails[0].custoIndividual.toFixed(2)}</strong> | 📌 Ordem mais próxima: <strong>R$ ${ordersDetails[numberOfOrders-1].custoIndividual.toFixed(2)}</strong><br>📌 <span class="profit-positive" style="font-size: 1.1em;">💰 TOTAL ACUMULADO: R$ ${totalCostAllOrders.toFixed(2)}</span></div>`;
+        document.getElementById('gridResult').innerHTML = resultHTML;
+        cachedGridResult = resultHTML;
     }
     
-    async function gerarPDFProfissional() {
-        const conteudo = document.getElementById('conteudoRelatorio');
-        if (!conteudo || !conteudo.innerHTML || conteudo.innerHTML.trim() === '' || conteudo.innerHTML.includes('Nenhuma transação encontrada para este período')) {
-            alert('⚠️ Gere um relatório primeiro clicando em "Gerar" antes de exportar o PDF!');
+    function calculateCompoundInterest() {
+        const initialValue = parseFloat(document.getElementById('initialValue').value);
+        const monthlyContribution = parseFloat(document.getElementById('monthlyContribution').value);
+        const interestRate = parseFloat(document.getElementById('interestRate').value);
+        const timeMonths = parseInt(document.getElementById('timeMonths').value);
+        if (isNaN(initialValue) || isNaN(monthlyContribution) || isNaN(interestRate) || isNaN(timeMonths)) {
+            document.getElementById('compoundResult').innerHTML = `<strong>⚠️ ERRO:</strong><br><span style="color: #ff5252;">Preencha todos os campos corretamente!</span>`;
+            cachedCompoundResult = document.getElementById('compoundResult').innerHTML;
             return;
         }
-        
-        const igrejaAtual = todasIgrejas.find(i => i.id === igrejaAtualId);
-        const nomeIgreja = igrejaAtual ? igrejaAtual.nome : 'CONBCD Finanças';
-        const dataAtual = new Date().toLocaleString('pt-BR');
-        
-        const pdfContent = document.createElement('div');
-        pdfContent.style.padding = '40px';
-        pdfContent.style.fontFamily = 'Arial, sans-serif';
-        pdfContent.style.backgroundColor = 'white';
-        pdfContent.style.color = '#333';
-        
-        pdfContent.innerHTML = `
-            <div style="text-align: center; margin-bottom: 40px; padding-bottom: 20px; border-bottom: 3px solid #064e3b;">
-                <div style="font-size: 48px; margin-bottom: 10px;">💰</div>
-                <h1 style="color: #064e3b; margin: 0; font-size: 28px;">${nomeIgreja}</h1>
-                <h2 style="color: #047857; margin: 10px 0; font-size: 22px;">RELATÓRIO FINANCEIRO PROFISSIONAL</h2>
-                <p style="color: #666; margin: 5px 0;">Gerado em: ${dataAtual}</p>
-                <p style="color: #666; margin: 5px 0;">Sistema CONBCD Finanças - Gestão Multi-Igrejas</p>
-            </div>
-            <div style="margin: 30px 0;">${conteudo.innerHTML}</div>
-            <div style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; font-size: 12px; color: #999;">
-                <p>Documento gerado eletronicamente pelo sistema CONBCD Finanças</p>
-                <p>© ${new Date().getFullYear()} CONBCD - Todos os direitos reservados</p>
-            </div>
-        `;
-        
-        const opt = {
-            margin: [0.5, 0.5, 0.5, 0.5],
-            filename: `Relatorio_${nomeIgreja}_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
-            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
-        
-        const btnPDF = document.getElementById('exportarPDF');
-        const textoOriginal = btnPDF.innerHTML;
-        btnPDF.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Gerando PDF...';
-        btnPDF.disabled = true;
-        
-        try {
-            await html2pdf().set(opt).from(pdfContent).save();
-            alert('✅ PDF gerado com sucesso! O arquivo foi salvo na pasta de downloads.');
-        } catch (error) {
-            console.error('Erro ao gerar PDF:', error);
-            alert('❌ Erro ao gerar PDF. Tente novamente.');
-        } finally {
-            btnPDF.innerHTML = textoOriginal;
-            btnPDF.disabled = false;
+        const rate = interestRate / 100;
+        let futureValue = initialValue * Math.pow(1 + rate, timeMonths);
+        if (monthlyContribution > 0 && rate > 0) {
+            futureValue += monthlyContribution * ((Math.pow(1 + rate, timeMonths) - 1) / rate);
+        } else if (monthlyContribution > 0 && rate === 0) {
+            futureValue += monthlyContribution * timeMonths;
+        }
+        const totalInvested = initialValue + (monthlyContribution * timeMonths);
+        const totalEarned = futureValue - totalInvested;
+        const resultHTML = `<strong>📊 RESULTADO DO INVESTIMENTO</strong><br><br><div class="main-value">R$ ${futureValue.toFixed(2)}</div><div style="margin: 10px 0;">📈 Valor Futuro (Montante)</div><hr style="margin: 10px 0; border-color: #3a3f5e;"><div><strong>💰 Total Investido:</strong> <span style="color: #2196f3;">R$ ${totalInvested.toFixed(2)}</span></div><div><strong>✨ Juros Ganhos:</strong> <span class="${totalEarned >= 0 ? 'profit-positive' : 'profit-negative'}">R$ ${totalEarned.toFixed(2)}</span></div><div><strong>📊 Rentabilidade Total:</strong> <span class="${totalEarned >= 0 ? 'profit-positive' : 'profit-negative'}">${((futureValue - totalInvested) / totalInvested * 100).toFixed(2)}%</span></div><div style="margin-top: 10px; font-size: 0.9em; color: #aaa;">⏱️ Período: ${timeMonths} mes(es) | 📊 Taxa: ${interestRate}% ao mês</div>`;
+        document.getElementById('compoundResult').innerHTML = resultHTML;
+        cachedCompoundResult = resultHTML;
+    }
+    
+    function calculateHedgeAbater() {
+        const profitValue = parseFloat(document.getElementById('profitToRealize').value);
+        const profitLots = parseFloat(document.getElementById('lotsProfit').value);
+        const totalLossValue = parseFloat(document.getElementById('totalLoss').value);
+        const lossLots = parseFloat(document.getElementById('lotsLoss').value);
+        if (isNaN(profitValue) || isNaN(profitLots) || isNaN(totalLossValue) || isNaN(lossLots)) {
+            document.getElementById('hedgeResult').innerHTML = `<strong>⚠️ Preencha todos os campos!</strong>`;
+            cachedHedgeResult = document.getElementById('hedgeResult').innerHTML;
+            return;
+        }
+        const lossPerLot = totalLossValue / lossLots;
+        let lotsToCover = profitValue / lossPerLot;
+        const maxLots = lossLots;
+        const wasLimited = lotsToCover > maxLots;
+        lotsToCover = Math.min(lotsToCover, maxLots);
+        const valueCovered = lotsToCover * lossPerLot;
+        const remainingLoss = totalLossValue - valueCovered;
+        const percentageCovered = (valueCovered / totalLossValue) * 100;
+        const resultHTML = `<strong>📊 RESULTADO DO HEDGE</strong><br><br><div class="hedge-lotes-destaque">${lotsToCover.toFixed(4)} LOTES</div><div>Você consegue abater ${lotsToCover.toFixed(4)} lotes da operação negativa</div><hr style="margin: 10px 0; border-color: #3a3f5e;"><div>💰 Valor abatido: <span class="profit-positive">R$ ${valueCovered.toFixed(2)}</span></div><div>📉 Prejuízo restante: <span class="profit-negative">R$ ${remainingLoss.toFixed(2)}</span></div><div>📊 Percentual abatido: ${percentageCovered.toFixed(1)}%</div>${wasLimited ? '<div class="profit-positive">✅ Você abateu TODA a operação negativa!</div>' : ''}`;
+        document.getElementById('hedgeResult').innerHTML = resultHTML;
+        cachedHedgeResult = resultHTML;
+    }
+    
+    function updateMainMetrics() {
+        if (systemInitialBalance === null) {
+            document.getElementById('mainMetrics').innerHTML = '<div class="metric-card"><h4>⚠️</h4><div class="value">Configure Saldo</div></div>';
+            return;
+        }
+        const totalProfit = trades.reduce((sum, t) => sum + (t.profit || 0), 0);
+        const totalLoss = trades.reduce((sum, t) => sum + (t.loss || 0), 0);
+        const totalWithdraw = trades.reduce((sum, t) => sum + (t.withdraw || 0), 0);
+        const totalDeposit = trades.reduce((sum, t) => sum + (t.deposit || 0), 0);
+        const totalOperationalResult = totalProfit - totalLoss;
+        const finalBalance = trades.length > 0 ? trades[trades.length - 1].finalDayBalance : systemInitialBalance;
+        let totalOperationalPercentage = 0;
+        if (systemInitialBalance !== 0) totalOperationalPercentage = (totalOperationalResult / systemInitialBalance) * 100;
+        document.getElementById('mainMetrics').innerHTML = `<div class="metric-card"><h4>💰 Saldo Inicial</h4><div class="value">R$ ${systemInitialBalance.toFixed(2)}</div></div><div class="metric-card"><h4>📈 Lucro Total</h4><div class="value profit-positive">R$ ${totalProfit.toFixed(2)}</div></div><div class="metric-card"><h4>📉 Perda Total</h4><div class="value profit-negative">R$ ${totalLoss.toFixed(2)}</div></div><div class="metric-card"><h4>🏧 Total Saques</h4><div class="value withdraw-negative">R$ ${totalWithdraw.toFixed(2)}</div></div><div class="metric-card"><h4>💰 Total Aportes</h4><div class="value deposit-positive">R$ ${totalDeposit.toFixed(2)}</div></div><div class="metric-card"><h4>📊 Resultado Operac.</h4><div class="value ${totalOperationalResult >= 0 ? 'profit-positive' : 'profit-negative'}">${totalOperationalResult >= 0 ? '+' : ''}R$ ${totalOperationalResult.toFixed(2)}</div></div><div class="metric-card"><h4>🏁 Saldo Final</h4><div class="value">R$ ${finalBalance.toFixed(2)}</div></div><div class="metric-card"><h4>📈 Rentabilidade %</h4><div class="value ${totalOperationalPercentage >= 0 ? 'profit-positive' : 'profit-negative'}">${totalOperationalPercentage >= 0 ? '+' : ''}${totalOperationalPercentage.toFixed(2)}%</div></div>`;
+    }
+    
+    function updatePercentageCards() {
+        if (trades.length === 0 || systemInitialBalance === null) {
+            document.getElementById('percentageCards').innerHTML = `<div class="card"><div class="card-title">📊 Porcentagens</div><p style="text-align:center;">Adicione registros para ver as porcentagens</p></div>`;
+            return;
+        }
+        const today = document.getElementById('tradeDate').value;
+        const todayTrades = trades.filter(t => t.date === today);
+        let todayOperationalPercentage = 0, todayOperationalResult = 0;
+        if (todayTrades.length > 0) {
+            todayOperationalResult = todayTrades.reduce((sum, t) => sum + (t.operationalResult || 0), 0);
+            const firstBalance = todayTrades[0].initialBalance;
+            if (firstBalance !== 0) todayOperationalPercentage = (todayOperationalResult / firstBalance) * 100;
+        }
+        const totalOperationalResult = trades.reduce((sum, t) => sum + (t.operationalResult || 0), 0);
+        let totalOperationalPercentage = 0;
+        if (systemInitialBalance !== 0) totalOperationalPercentage = (totalOperationalResult / systemInitialBalance) * 100;
+        const validPercentages = trades.filter(t => !isNaN(t.dailyPercentage) && isFinite(t.dailyPercentage)).map(t => t.dailyPercentage);
+        const avgPercentage = validPercentages.length > 0 ? validPercentages.reduce((a,b) => a+b, 0) / validPercentages.length : 0;
+        const maxPositive = Math.max(...validPercentages, 0);
+        const maxNegative = Math.min(...validPercentages, 0);
+        const totalDepositsValue = trades.reduce((sum, t) => sum + (t.deposit || 0), 0);
+        const totalWithdrawsValue = trades.reduce((sum, t) => sum + (t.withdraw || 0), 0);
+        const totalDepositsCount = trades.filter(t => (t.deposit || 0) > 0).length;
+        const totalWithdrawsCount = trades.filter(t => (t.withdraw || 0) > 0).length;
+        document.getElementById('percentageCards').innerHTML = `<div class="card"><div class="card-title">📊 RENTABILIDADE DO DIA</div><div style="text-align: center; padding: 20px;"><div style="font-size: 3em; font-weight: bold; ${todayOperationalResult >= 0 ? 'color: #4caf50' : 'color: #ff5252'}">${todayOperationalPercentage >= 0 ? '+' : ''}${todayOperationalPercentage.toFixed(2)}%</div><div style="margin-top: 10px;">Resultado operacional: ${todayOperationalResult >= 0 ? '+' : ''}R$ ${todayOperationalResult.toFixed(2)}</div><div style="font-size: 0.9em; color: #aaa;">${todayTrades.length} registro(s) hoje</div><small style="color: #aaa;">* Porcentagem baseada APENAS em lucro/perda</small></div></div><div class="card"><div class="card-title">📈 RENTABILIDADE TOTAL</div><div style="text-align: center; padding: 20px;"><div style="font-size: 3em; font-weight: bold; ${totalOperationalPercentage >= 0 ? 'color: #4caf50' : 'color: #ff5252'}">${totalOperationalPercentage >= 0 ? '+' : ''}${totalOperationalPercentage.toFixed(2)}%</div><div style="margin-top: 10px;">Lucro/perda acumulado: ${totalOperationalResult >= 0 ? '+' : ''}R$ ${totalOperationalResult.toFixed(2)}</div><div style="font-size: 0.9em; color: #aaa;">Base: Saldo Inicial R$ ${systemInitialBalance.toFixed(2)}</div></div></div><div class="card"><div class="card-title">📊 MÉDIAS E EXTREMOS</div><div style="padding: 10px;"><div><strong>📈 Média % por operação:</strong> <span class="${avgPercentage >= 0 ? 'profit-positive' : 'profit-negative'}">${avgPercentage >= 0 ? '+' : ''}${avgPercentage.toFixed(2)}%</span></div><div><strong>🏆 Maior ganho %:</strong> <span class="profit-positive">+${maxPositive.toFixed(2)}%</span></div><div><strong>💔 Maior perda %:</strong> <span class="profit-negative">${maxNegative.toFixed(2)}%</span></div><div><strong>📊 Total de registros:</strong> ${trades.length}</div><div><strong>✅ Operações positivas:</strong> ${trades.filter(t => (t.operationalResult || 0) > 0).length}</div><div><strong>❌ Operações negativas:</strong> ${trades.filter(t => (t.operationalResult || 0) < 0).length}</div><div><strong>🎯 Taxa de acerto:</strong> ${((trades.filter(t => (t.operationalResult || 0) > 0).length / trades.filter(t => t.profit !== 0 || t.loss !== 0).length || 0) * 100).toFixed(1)}%</div><hr style="margin: 10px 0; border-color: #3a3f5e;"><div><strong>💰 Total de Aportes:</strong> ${totalDepositsCount} vez(es) | <span class="deposit-positive">R$ ${totalDepositsValue.toFixed(2)}</span></div><div><strong>🏧 Total de Saques:</strong> ${totalWithdrawsCount} vez(es) | <span class="withdraw-negative">R$ ${totalWithdrawsValue.toFixed(2)}</span></div></div></div>`;
+    }
+    
+    function updateDailyOperations() {
+        const today = document.getElementById('tradeDate').value;
+        const todayTrades = trades.filter(t => t.date === today).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        const container = document.getElementById('dailyOperationsList');
+        if (todayTrades.length === 0) { container.innerHTML = '<div style="text-align: center; color: #aaa;">Nenhum registro hoje</div>'; return; }
+        container.innerHTML = '';
+        todayTrades.forEach((trade, idx) => {
+            const resultClass = (trade.operationalResult || 0) >= 0 ? 'profit-positive' : 'profit-negative';
+            container.innerHTML += `<div class="operation-item"><span>#${idx + 1}</span>${trade.profit > 0 ? `<span>💰 Lucro: R$ ${trade.profit.toFixed(2)}</span>` : ''}${trade.loss > 0 ? `<span>📉 Perda: R$ ${trade.loss.toFixed(2)}</span>` : ''}${trade.withdraw > 0 ? `<span>🏧 Saque: R$ ${trade.withdraw.toFixed(2)}</span>` : ''}${trade.deposit > 0 ? `<span>💰 Aporte: R$ ${trade.deposit.toFixed(2)}</span>` : ''}<span class="${resultClass}">📊 Resultado Op.: ${(trade.operationalResult || 0) >= 0 ? '+' : ''}R$ ${(trade.operationalResult || 0).toFixed(2)}</span><span class="${resultClass}">📈 %: ${(trade.dailyPercentage || 0) >= 0 ? '+' : ''}${(trade.dailyPercentage || 0).toFixed(2)}%</span>${trade.lots > 0 ? `<span>🎯 ${trade.lots} l</span>` : ''}</div>`;
+        });
+    }
+    
+    function updateTradesTable() {
+        const tbody = document.getElementById('tradesBody');
+        if (trades.length === 0) { tbody.innerHTML = '<tr><td colspan="12">Nenhum registro ainda</td></tr>'; return; }
+        const sorted = [...trades].sort((a, b) => {
+            if (a.date !== b.date) return new Date(a.date) - new Date(b.date);
+            return new Date(a.timestamp) - new Date(b.timestamp);
+        });
+        tbody.innerHTML = '';
+        sorted.forEach(trade => {
+            const resultClass = (trade.operationalResult || 0) >= 0 ? 'profit-positive' : 'profit-negative';
+            const row = tbody.insertRow();
+            row.innerHTML = `<td>${trade.date}</td><td>R$ ${trade.initialBalance.toFixed(2)}</td><td class="profit-positive">R$ ${(trade.profit || 0).toFixed(2)}</td><td class="profit-negative">R$ ${(trade.loss || 0).toFixed(2)}</td><td class="withdraw-negative">R$ ${(trade.withdraw || 0).toFixed(2)}</td><td class="deposit-positive">R$ ${(trade.deposit || 0).toFixed(2)}</td><td class="${resultClass}">${(trade.operationalResult || 0) >= 0 ? '+' : ''}R$ ${(trade.operationalResult || 0).toFixed(2)}</td><td class="${resultClass}">${(trade.dailyPercentage || 0) >= 0 ? '+' : ''}${(trade.dailyPercentage || 0).toFixed(2)}%</td><td>${trade.lots > 0 ? trade.lots : '-'}</td><td>${trade.asset}</td><td>R$ ${trade.finalDayBalance.toFixed(2)}</td><td><button onclick="deleteTrade('${trade.id}')" class="btn-danger">🗑️</button></td>`;
+        });
+    }
+    
+    async function deleteTrade(id) {
+        if (confirm('Remover este registro?')) {
+            trades = trades.filter(t => t.id != id);
+            accountsCache[currentAccount].trades = trades;
+            recalculateBalances();
+            await saveAccountToDB(currentAccount, accountsCache[currentAccount]);
+            updateAll();
         }
     }
     
-    async function gerarRelatorioAvancado() {
-        if (!transacoes || transacoes.length === 0) {
-            alert('⚠️ Nenhuma transação encontrada. Cadastre algumas receitas ou despesas primeiro.');
+    function updateChart() {
+        if (trades.length === 0 || !systemInitialBalance) {
+            if (dailyChart) dailyChart?.destroy();
+            if (monthlyChart) monthlyChart?.destroy();
+            if (assetsChart) assetsChart?.destroy();
             return;
         }
-        
-        const ano = prompt('Digite o ano para o relatório avançado:', new Date().getFullYear());
-        if (!ano) return;
-        
-        const anoNum = parseInt(ano);
-        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-        
-        const relatorio = {};
-        for (let i = 1; i <= 12; i++) {
-            relatorio[i] = { receitas: 0, despesas: 0, transacoes: [] };
-        }
-        
-        let totalReceitasAno = 0;
-        let totalDespesasAno = 0;
-        
-        transacoes.forEach(t => {
-            const data = new Date(t.data);
-            if (data.getFullYear() === anoNum) {
-                const mes = data.getMonth() + 1;
-                if (t.tipo === 'receita') {
-                    relatorio[mes].receitas += t.valor;
-                    totalReceitasAno += t.valor;
-                } else {
-                    relatorio[mes].despesas += t.valor;
-                    totalDespesasAno += t.valor;
-                }
-                relatorio[mes].transacoes.push(t);
+        const dailyFinal = {};
+        trades.forEach(t => { dailyFinal[t.date] = t.finalDayBalance; });
+        const dates = Object.keys(dailyFinal).sort();
+        const balances = dates.map(d => dailyFinal[d]);
+        const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+        if (dailyChart) dailyChart.destroy();
+        dailyChart = new Chart(dailyCtx, {
+            type: 'line',
+            data: { labels: dates, datasets: [{ label: 'Saldo Final', data: balances, borderColor: '#ffd700', backgroundColor: 'rgba(255,215,0,0.1)', fill: true, tension: 0.4 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#e0e0e0' } } } }
+        });
+        const monthlyData = {};
+        trades.forEach(trade => {
+            const [year, month] = trade.date.split('-');
+            const monthKey = `${year}-${month}`;
+            if (!monthlyData[monthKey]) monthlyData[monthKey] = { finalBalance: null, lastDate: null };
+            const tradeDate = new Date(trade.date);
+            if (!monthlyData[monthKey].lastDate || tradeDate > monthlyData[monthKey].lastDate) {
+                monthlyData[monthKey].lastDate = tradeDate;
+                monthlyData[monthKey].finalBalance = trade.finalDayBalance;
             }
         });
-        
-        let temDados = false;
-        for (let i = 1; i <= 12; i++) {
-            if (relatorio[i].receitas > 0 || relatorio[i].despesas > 0) {
-                temDados = true;
-                break;
-            }
-        }
-        
-        if (!temDados) {
-            alert(`⚠️ Nenhuma transação encontrada para o ano ${ano}.`);
+        const sortedMonths = Object.keys(monthlyData).sort();
+        const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const monthLabels = sortedMonths.map(m => { const [year, month] = m.split('-'); return `${monthNames[parseInt(month)-1]}/${year}`; });
+        const monthBalances = sortedMonths.map(m => monthlyData[m].finalBalance);
+        const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+        if (monthlyChart) monthlyChart.destroy();
+        monthlyChart = new Chart(monthlyCtx, {
+            type: 'bar',
+            data: { labels: monthLabels, datasets: [{ label: 'Saldo Final do Mês (R$)', data: monthBalances, backgroundColor: 'rgba(255,215,0,0.7)', borderColor: '#ffd700', borderWidth: 2 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#e0e0e0' } }, tooltip: { callbacks: { label: (ctx) => `R$ ${ctx.raw.toFixed(2)}` } } } }
+        });
+        const assetCount = {};
+        trades.forEach(trade => { if (trade.asset && trade.asset !== '-') assetCount[trade.asset] = (assetCount[trade.asset] || 0) + 1; });
+        const sortedAssets = Object.entries(assetCount).sort((a, b) => b[1] - a[1]).slice(0, 10);
+        const assetLabels = sortedAssets.map(a => a[0]);
+        const assetValues = sortedAssets.map(a => a[1]);
+        const assetsCtx = document.getElementById('assetsChart').getContext('2d');
+        if (assetsChart) assetsChart.destroy();
+        if (assetLabels.length === 0) {
+            assetsCtx.canvas.parentElement.innerHTML = '<div style="text-align:center; padding:50px; color:#aaa;">📊 Nenhum ativo registrado ainda</div>';
+            const newCanvas = document.createElement('canvas');
+            newCanvas.id = 'assetsChart';
+            assetsCtx.canvas.parentElement.appendChild(newCanvas);
             return;
         }
-        
-        const igrejaAtual = todasIgrejas.find(i => i.id === igrejaAtualId);
-        const nomeIgreja = igrejaAtual ? igrejaAtual.nome : 'Igreja';
-        
-        let html = `
-            <div style="padding:20px;">
-                <div style="text-align:center; margin-bottom:30px;">
-                    <h2 style="color:#064e3b;">📊 RELATÓRIO AVANÇADO ${ano}</h2>
-                    <p><i class="fas fa-church"></i> ${nomeIgreja}</p>
-                    <hr style="margin:15px 0;">
-                </div>
-                <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:15px; margin-bottom:30px;">
-                    <div style="background:linear-gradient(135deg,#10b981,#059669); padding:15px; border-radius:15px; color:white; text-align:center;">
-                        <i class="fas fa-arrow-up" style="font-size:24px;"></i>
-                        <h3>Total Receitas</h3>
-                        <p style="font-size:22px; font-weight:bold;">R$ ${totalReceitasAno.toFixed(2)}</p>
-                    </div>
-                    <div style="background:linear-gradient(135deg,#ef4444,#dc2626); padding:15px; border-radius:15px; color:white; text-align:center;">
-                        <i class="fas fa-arrow-down" style="font-size:24px;"></i>
-                        <h3>Total Despesas</h3>
-                        <p style="font-size:22px; font-weight:bold;">R$ ${totalDespesasAno.toFixed(2)}</p>
-                    </div>
-                    <div style="background:linear-gradient(135deg,#3b82f6,#2563eb); padding:15px; border-radius:15px; color:white; text-align:center;">
-                        <i class="fas fa-balance-scale" style="font-size:24px;"></i>
-                        <h3>Saldo do Ano</h3>
-                        <p style="font-size:22px; font-weight:bold;">R$ ${(totalReceitasAno - totalDespesasAno).toFixed(2)}</p>
-                    </div>
-                </div>
-                <h3><i class="fas fa-chart-line"></i> Análise Mensal</h3>
-                <div style="overflow-x:auto;">
-                    <table style="width:100%; border-collapse:collapse; margin-top:15px;">
-                        <thead>
-                            <tr style="background:#064e3b; color:white;">
-                                <th style="padding:12px;">Mês</th>
-                                <th style="padding:12px;">Receitas</th>
-                                <th style="padding:12px;">Despesas</th>
-                                <th style="padding:12px;">Saldo</th>
-                                <th style="padding:12px;">% Margem</th>
-                             </tr>
-                        </thead>
-                        <tbody>`;
-        
-        for (let i = 1; i <= 12; i++) {
-            const rec = relatorio[i].receitas;
-            const desp = relatorio[i].despesas;
-            const saldo = rec - desp;
-            const margem = rec > 0 ? ((saldo / rec) * 100).toFixed(1) : (saldo === 0 ? '0' : (desp > 0 ? '-100' : '0'));
-            const corSaldo = saldo >= 0 ? '#10b981' : '#ef4444';
-            const destaque = (rec > 0 || desp > 0) ? 'background:#f0fdf4;' : '';
-            
-            html += `<tr style="border-bottom:1px solid #e5e7eb; ${destaque}">
-                        <td style="padding:10px;"><strong>${meses[i - 1]}</strong></td>
-                        <td style="padding:10px; color:#10b981;">R$ ${rec.toFixed(2)}</td>
-                        <td style="padding:10px; color:#ef4444;">R$ ${desp.toFixed(2)}</td>
-                        <td style="padding:10px; color:${corSaldo};">R$ ${saldo.toFixed(2)}</td>
-                        <td style="padding:10px;">${margem}%</td>
-                      </tr>`;
-        }
-        
-        html += `
-                        </tbody>
-                    </table>
-                </div>
-                <div style="margin-top:30px; text-align:center; padding:15px; background:#fef3c7; border-radius:15px;">
-                    <small><i class="fas fa-calendar-alt"></i> Relatório gerado em ${new Date().toLocaleString()}</small>
-                </div>
-            </div>
-        `;
-        
-        const modal = document.createElement('div');
-        modal.style.cssText = `position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10001; display:flex; align-items:center; justify-content:center; overflow:auto;`;
-        modal.innerHTML = `
-            <div style="background:white; border-radius:25px; max-width:95%; max-height:95%; overflow:auto; margin:20px; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
-                <div style="position:sticky; top:0; background:linear-gradient(135deg,#064e3b,#047857); color:white; padding:15px 25px; border-radius:25px 25px 0 0; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-                    <h3 style="margin:0;"><i class="fas fa-chart-line"></i> Relatório Avançado ${ano}</h3>
-                    <div>
-                        <button id="imprimirAvancadoBtn" style="background:white; color:#064e3b; margin-right:10px;"><i class="fas fa-print"></i> Imprimir</button>
-                        <button id="pdfAvancadoBtn" style="background:white; color:#064e3b; margin-right:10px;"><i class="fas fa-file-pdf"></i> PDF</button>
-                        <button id="fecharModalBtn" style="background:#dc2626; border:none; color:white; font-size:18px; cursor:pointer; padding:8px 15px;"><i class="fas fa-times"></i> Fechar</button>
-                    </div>
-                </div>
-                <div id="conteudoRelatorioModal" style="padding:25px;">${html}</div>
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
-        
-        document.getElementById('imprimirAvancadoBtn')?.addEventListener('click', () => {
-            const conteudoModal = document.getElementById('conteudoRelatorioModal').innerHTML;
-            const printWindow = window.open('', '_blank');
-            printWindow.document.write(`<html><head><title>Relatório Avançado</title><style>body { font-family: Arial; padding: 40px; } table { border-collapse: collapse; width: 100%; } th, td { border: 1px solid #ddd; padding: 8px; } th { background: #064e3b; color: white; }</style></head><body>${conteudoModal}</body></html>`);
-            printWindow.document.close();
-            printWindow.print();
+        assetsChart = new Chart(assetsCtx, {
+            type: 'pie',
+            data: { labels: assetLabels, datasets: [{ data: assetValues, backgroundColor: ['#ffd700', '#ff8c00', '#4caf50', '#2196f3', '#ff5252', '#9c27b0', '#00bcd4', '#e91e63', '#cddc39', '#795548'], borderWidth: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: '#e0e0e0', font: { size: 11 } } }, tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw} trade(s)` } } } }
         });
-        
-        document.getElementById('pdfAvancadoBtn')?.addEventListener('click', async () => {
-            const conteudoModal = document.getElementById('conteudoRelatorioModal');
-            const pdfContent = document.createElement('div');
-            pdfContent.innerHTML = `<div style="padding:40px; font-family:Arial;"><div style="text-align:center; margin-bottom:40px;"><h1 style="color:#064e3b;">${nomeIgreja}</h1><h2 style="color:#047857;">RELATÓRIO AVANÇADO ${ano}</h2><p>Gerado em: ${new Date().toLocaleString()}</p></div>${conteudoModal.innerHTML}</div>`;
-            const opt = { margin: [0.5, 0.5, 0.5, 0.5], filename: `Relatorio_Avancado_${nomeIgreja}_${ano}.pdf`, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } };
-            const btnPDF = document.getElementById('pdfAvancadoBtn');
-            const textoOriginal = btnPDF.innerHTML;
-            btnPDF.innerHTML = '<i class="fas fa-spinner fa-pulse"></i>';
-            btnPDF.disabled = true;
-            try {
-                await html2pdf().set(opt).from(pdfContent).save();
-                alert('✅ PDF gerado com sucesso!');
-            } catch (error) {
-                alert('❌ Erro ao gerar PDF');
-            } finally {
-                btnPDF.innerHTML = textoOriginal;
-                btnPDF.disabled = false;
-            }
-        });
-        
-        document.getElementById('fecharModalBtn')?.addEventListener('click', () => modal.remove());
     }
     
-    // Event Listeners
-    document.getElementById('seletorIgreja')?.addEventListener('change', (e) => trocarIgreja(parseInt(e.target.value)));
+    function toggleTheme() {
+        document.body.classList.toggle('light-mode');
+        setSetting('theme', document.body.classList.contains('light-mode') ? 'light' : 'dark');
+        updateChart();
+    }
     
-    document.getElementById('salvarTransacao')?.addEventListener('click', async () => {
-        const valor = parseFloat(document.getElementById('valorTransacao').value);
-        const data = document.getElementById('dataTransacao').value;
-        if (isNaN(valor) || !data) return alert('Preencha valor e data');
-        
-        transacoes.push({
-            id: Date.now(),
-            igrejaId: igrejaAtualId,
-            tipo: document.getElementById('tipoTransacao').value,
-            categoria: document.getElementById('categoriaSelect').value,
-            valor: valor,
-            data: data,
-            descricao: document.getElementById('descTransacao').value,
-            formaPagamento: document.getElementById('formaPagamento').value,
-            dataCriacao: new Date().toISOString()
+    function openResetModal() { document.getElementById('resetModal').style.display = 'flex'; }
+    function closeResetModal() { document.getElementById('resetModal').style.display = 'none'; }
+    
+    function updateAll() {
+        updateMainMetrics();
+        updatePercentageCards();
+        updateDailyOperations();
+        updateTradesTable();
+        updateChart();
+    }
+    
+    function setDefaultDate() {
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('tradeDate').value = today;
+        updateDailyInitialBalanceDisplay(today);
+        document.getElementById('tradeDate').addEventListener('change', function() {
+            updateDailyInitialBalanceDisplay(this.value);
+            updateDailyOperations();
+            updatePercentageCards();
         });
-        
-        await salvarIgrejaAtual();
-        await atualizarInterface();
-        document.getElementById('valorTransacao').value = '';
-        document.getElementById('descTransacao').value = '';
-        document.getElementById('dataTransacao').value = '';
-        alert('✅ Transação salva com sucesso!');
-    });
+    }
     
-    document.getElementById('adicionarCategoria')?.addEventListener('click', async () => {
-        const nome = document.getElementById('novaCategoriaNome').value.trim();
-        const tipo = document.getElementById('tipoCategoria').value;
-        if (nome && !categorias.find(c => c.nome === nome)) {
-            categorias.push({ nome: nome, tipo: tipo });
-            await salvarIgrejaAtual();
-            await atualizarInterface();
-            document.getElementById('novaCategoriaNome').value = '';
-            alert('✅ Categoria adicionada!');
-        } else {
-            alert('❌ Categoria já existe ou nome inválido');
-        }
-    });
-    
-    document.getElementById('adicionarIgreja')?.addEventListener('click', () => {
-        const nome = document.getElementById('novaIgrejaNome').value.trim();
-        const endereco = document.getElementById('novaIgrejaEndereco').value;
-        adicionarIgreja(nome, endereco);
-        document.getElementById('novaIgrejaNome').value = '';
-        document.getElementById('novaIgrejaEndereco').value = '';
-    });
-    
-    document.getElementById('gerarRelatorio')?.addEventListener('click', () => {
-        const mes = parseInt(document.getElementById('relMes').value);
-        const ano = parseInt(document.getElementById('relAno').value);
-        gerarRelatorio(mes, ano);
-    });
-    
-    document.getElementById('imprimirRelatorio')?.addEventListener('click', imprimirRelatorio);
-    document.getElementById('exportarPDF')?.addEventListener('click', gerarPDFProfissional);
-    document.getElementById('fazerBackup')?.addEventListener('click', exportarBackup);
-    document.getElementById('restoreFile')?.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) {
-            restaurarBackup(e.target.files[0]);
-            e.target.value = '';
-        }
-    });
-    document.getElementById('btnRelatorioAvancado')?.addEventListener('click', gerarRelatorioAvancado);
-    
-    // Abas
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active-panel'));
-            const panel = document.getElementById(btn.dataset.tab);
-            if (panel) panel.classList.add('active-panel');
-        });
-    });
-    
-    // PWA - Instalação
-    window.addEventListener('beforeinstallprompt', (e) => {
-        e.preventDefault();
-        deferredPrompt = e;
-        document.getElementById('installBanner').style.display = 'flex';
-    });
-    
-    document.getElementById('installBtn')?.addEventListener('click', async () => {
-        if (deferredPrompt) {
-            deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                document.getElementById('installBanner').style.display = 'none';
-            }
-            deferredPrompt = null;
-        }
-    });
-    
-    // Inicialização
-    (async function() {
+    document.addEventListener('DOMContentLoaded', async () => {
+        setupLotsValidation();
+        setDefaultDate();
         await initDatabase();
-        await carregarDados();
-    })();
+        await loadAllData();
+        
+        ['profitToRealize', 'lotsProfit', 'totalLoss', 'lotsLoss'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', calculateHedgeAbater);
+        });
+        
+        // Adicionar listeners para atualizar cache dos cálculos
+        const gridBtn = document.querySelector('button[onclick="calculateGridDistance()"]');
+        if (gridBtn) {
+            const originalGridCalc = calculateGridDistance;
+            window.calculateGridDistance = function() {
+                originalGridCalc();
+                cachedGridResult = document.getElementById('gridResult').innerHTML;
+            };
+        }
+        
+        const compoundBtn = document.querySelector('button[onclick="calculateCompoundInterest()"]');
+        if (compoundBtn) {
+            const originalCompoundCalc = calculateCompoundInterest;
+            window.calculateCompoundInterest = function() {
+                originalCompoundCalc();
+                cachedCompoundResult = document.getElementById('compoundResult').innerHTML;
+            };
+        }
+        
+        const savedTheme = await getSetting('theme');
+        if (savedTheme === 'light') document.body.classList.add('light-mode');
+        
+        console.log('Sistema inicializado com armazenamento ILIMITADO e funcionalidade de impressão!');
+    });
 </script>
 </body>
     </html>

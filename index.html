@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>CONBCD FINANÇAS | Multi-Igrejas com Login Master (Versão Aprimorada)</title>
+    <!-- PWA: manifest será gerado dinamicamente -->
+    <link rel="manifest" id="dynamic-manifest">
+    <!-- PWA: ícone para iOS -->
+    <link rel="apple-touch-icon" id="apple-touch-icon">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#064e3b">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -59,6 +66,29 @@
         .btn-master { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
         .edit-btn { background: #f59e0b; margin-right: 5px; }
         .small-btn { padding: 5px 10px; font-size: 0.8rem; }
+        
+        /* PWA: botão flutuante de instalação */
+        .install-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            border-radius: 60px;
+            padding: 14px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.2s;
+        }
+        .install-button:hover { transform: scale(1.05); }
+        .install-button i { font-size: 1.3rem; }
     </style>
 </head>
 <body>
@@ -236,9 +266,12 @@
 </div>
 </div>
 
+<!-- PWA: Botão flutuante de instalação -->
+<button id="installBtn" class="install-button"><i class="fas fa-download"></i> Instalar App</button>
+
 <script>
     // ============================================
-    // VERSÃO APRIMORADA - BACKUP COMPLETO, EDIÇÃO, FORMAS PAGAMENTO, SENHA MASTER PERSISTENTE
+    // CÓDIGO ORIGINAL (NÃO MODIFICADO)
     // ============================================
     
     const DB_NAME = 'CONBCD_Multi_Igrejas_DB';
@@ -713,6 +746,166 @@
         initTabs();
         hideLoading();
     })();
+
+    // ============================================
+    // PWA: Sistema de Instalação Nativa (ADD-ON)
+    // ============================================
+    (function setupPWA() {
+        // 1. Gerar ícones dinamicamente via Canvas (para não depender de arquivos externos)
+        async function generateIcon(size, bgColor = "#064e3b", iconColor = "#ffffff") {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+                // Fundo arredondado
+                ctx.fillStyle = bgColor;
+                ctx.beginPath();
+                ctx.roundRect(0, 0, size, size, size * 0.2);
+                ctx.fill();
+                // Desenhar um símbolo de igreja + cifrão
+                ctx.fillStyle = iconColor;
+                ctx.font = `bold ${size * 0.5}px "Segoe UI", "Font Awesome 6 Free"`;
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText("⛪", size/2, size/2 - size*0.1);
+                ctx.font = `bold ${size * 0.25}px "Segoe UI"`;
+                ctx.fillStyle = "#fbbf24";
+                ctx.fillText("$", size*0.7, size*0.7);
+                canvas.toBlob(blob => {
+                    const url = URL.createObjectURL(blob);
+                    resolve({ url, size });
+                });
+            });
+        }
+
+        // Helper para roundRect
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+                if (w < 2 * r) r = w / 2;
+                if (h < 2 * r) r = h / 2;
+                this.moveTo(x+r, y);
+                this.lineTo(x+w-r, y);
+                this.quadraticCurveTo(x+w, y, x+w, y+r);
+                this.lineTo(x+w, y+h-r);
+                this.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+                this.lineTo(x+r, y+h);
+                this.quadraticCurveTo(x, y+h, x, y+h-r);
+                this.lineTo(x, y+r);
+                this.quadraticCurveTo(x, y, x+r, y);
+                return this;
+            };
+        }
+
+        // 2. Criar manifesto dinâmico com os ícones gerados
+        async function createManifest() {
+            const sizes = [72, 96, 128, 144, 192, 384, 512];
+            const icons = [];
+            for (let sz of sizes) {
+                const { url } = await generateIcon(sz);
+                icons.push({
+                    src: url,
+                    sizes: `${sz}x${sz}`,
+                    type: "image/png",
+                    purpose: "any maskable"
+                });
+            }
+            const manifest = {
+                name: "CONBCD FINANÇAS",
+                short_name: "CONBCD",
+                description: "Sistema de Gestão Financeira para Igrejas",
+                start_url: "./",
+                display: "standalone",
+                theme_color: "#064e3b",
+                background_color: "#f0fdf4",
+                orientation: "portrait",
+                icons: icons
+            };
+            const manifestBlob = new Blob([JSON.stringify(manifest)], { type: "application/json" });
+            const manifestURL = URL.createObjectURL(manifestBlob);
+            const manifestLink = document.getElementById('dynamic-manifest');
+            if (manifestLink) manifestLink.href = manifestURL;
+            // Atualizar também o ícone apple-touch-icon (usar o maior)
+            if (icons.length) {
+                const appleIcon = document.getElementById('apple-touch-icon');
+                if (appleIcon) appleIcon.href = icons.find(i => i.sizes === "512x512")?.src || icons[icons.length-1].src;
+            }
+        }
+
+        // 3. Service Worker (cache de recursos para offline)
+        function registerServiceWorker() {
+            const swCode = `
+                const CACHE_NAME = 'conbcd-cache-v1';
+                const urlsToCache = [
+                    './',
+                    '${window.location.href}',
+                    'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+                    'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
+                    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css'
+                ];
+                
+                self.addEventListener('install', event => {
+                    event.waitUntil(
+                        caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+                    );
+                });
+                
+                self.addEventListener('fetch', event => {
+                    event.respondWith(
+                        caches.match(event.request).then(response => {
+                            return response || fetch(event.request);
+                        })
+                    );
+                });
+                
+                self.addEventListener('activate', event => {
+                    event.waitUntil(
+                        caches.keys().then(keys => Promise.all(
+                            keys.map(key => {
+                                if (key !== CACHE_NAME) return caches.delete(key);
+                            })
+                        ))
+                    );
+                });
+            `;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register(swUrl).then(reg => {
+                    console.log('Service Worker registrado com sucesso!', reg);
+                }).catch(err => console.error('Falha ao registrar SW:', err));
+            }
+        }
+
+        // 4. Lógica do botão de instalação
+        let deferredPrompt = null;
+        const installBtn = document.getElementById('installBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'flex';
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    installBtn.style.display = 'none';
+                }
+                deferredPrompt = null;
+            } else {
+                alert('Para instalar, clique no menu do navegador → "Adicionar à tela inicial"');
+            }
+        });
+
+        // Executar configuração PWA após carregamento da página
+        window.addEventListener('load', () => {
+            createManifest();
+            registerServiceWorker();
+        });
+    })();
 </script>
 </body>
-                </html>
+                    </html>

@@ -333,10 +333,10 @@
         setTimeout(() => toast.remove(), 3000);
     }
     
-    // --- Função para adicionar rodapé de assinaturas (sempre na última página) - ORDEM INVERTIDA ---
+    // --- Função para adicionar rodapé de assinaturas ---
     function adicionarRodapeAssinaturas() {
-        return `<div style="margin-top: 50px; page-break-inside: avoid; page-break-before: avoid;">
-            <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ccc; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+        return `<div class="assinaturas-rodape" style="margin-top: 60px; page-break-inside: avoid; page-break-before: avoid;">
+            <div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid #ccc; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
                 <div style="text-align: center; flex: 1;">
                     <div style="border-top: 1px solid #000; padding-top: 8px; width: 200px; margin: 0 auto;"></div>
                     <strong>Tesoureiro</strong>
@@ -351,7 +351,7 @@
                 </div>
             </div>
             <div style="margin-top: 30px; text-align: center; font-size: 10px; color: #666;">
-                Documento gerado eletronicamente por CONBCD FINANÇAS
+                Documento gerado eletronicamente por CONBCD FINANÇAS - ${new Date().toLocaleDateString()}
             </div>
         </div>`;
     }
@@ -558,7 +558,6 @@
         document.getElementById('descTransacao').value = '';
         document.getElementById('dataTransacao').value = '';
         document.getElementById('tipoTransacao').value = 'receita';
-        // Força a atualização dos selects para evitar valores residuais
         if (document.getElementById('categoriaSelect').options.length > 0) {
             document.getElementById('categoriaSelect').selectedIndex = 0;
         }
@@ -800,7 +799,7 @@
             <strong>Totais:</strong> Receitas: R$ ${rec.toFixed(2)} | Despesas: R$ ${desp.toFixed(2)} | Saldo: R$ ${(rec-desp).toFixed(2)}
         </div>`;
         html+=`<div style="margin-top:20px; text-align:right; font-size:12px;">Gerado em ${new Date().toLocaleString()}</div>`;
-        // Adicionar rodapé com assinaturas (sempre na última página) - ORDEM INVERTIDA
+        // Adicionar rodapé com assinaturas
         html += adicionarRodapeAssinaturas();
         document.getElementById('conteudoRelatorio').innerHTML = html;
     }
@@ -885,22 +884,51 @@
         input.click();
     }
     
-    // CORREÇÃO: Relatório Avançado com botão Imprimir
+    // CORREÇÃO: Relatório Avançado com assinaturas no RODAPÉ e botão imprimir
     function relatorioAvancadoComImpressao() {
         if(!igrejaAtual) return;
         const ano = prompt('Ano:', new Date().getFullYear());
         if(!ano) return;
         const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-        let html = `<h3>Relatório Avançado ${ano} - ${igrejaAtual?.nome}</h3><table border="1" style="width:100%; border-collapse: collapse;"><tr style="background:#064e3b;color:white"><th style="padding:10px;">Mês</th><th>Receitas</th><th>Despesas</th><th>Saldo</th></tr>`;
+        let html = `<h3>Relatório Avançado ${ano} - ${igrejaAtual?.nome}</h3>
+                    <table border="1" style="width:100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="background:#064e3b;color:white">
+                                <th style="padding:10px;">Mês</th>
+                                <th>Receitas</th>
+                                <th>Despesas</th>
+                                <th>Saldo</th>
+                            </tr>
+                        </thead>
+                        <tbody>`;
         let totalR=0,totalD=0;
         for(let i=0;i<12;i++){
             let rec=0,desp=0;
-            transacoes.forEach(t=>{ const d=new Date(t.data); if(d.getFullYear()==ano && d.getMonth()==i){ if(t.tipo==='receita') rec+=t.valor; else desp+=t.valor; } });
+            transacoes.forEach(t=>{ 
+                const d=new Date(t.data); 
+                if(d.getFullYear()==ano && d.getMonth()==i){ 
+                    if(t.tipo==='receita') rec+=t.valor; 
+                    else desp+=t.valor; 
+                } 
+            });
             totalR+=rec;
             totalD+=desp;
-            html+=`<tr><td style="padding:8px;">${meses[i]}</td><td>R$ ${rec.toFixed(2)}</td><td>R$ ${desp.toFixed(2)}</td><td style="color:${rec-desp>=0?'green':'red'}">R$ ${(rec-desp).toFixed(2)}</td></tr>`;
+            html+=`<tr>
+                        <td style="padding:8px;">${meses[i]}</td>
+                        <td>R$ ${rec.toFixed(2)}</td>
+                        <td>R$ ${desp.toFixed(2)}</td>
+                        <td style="color:${rec-desp>=0?'green':'red'}">R$ ${(rec-desp).toFixed(2)}</td>
+                    </tr>`;
         }
-        html+=`<tr style="font-weight:bold"><td>TOTAL</td><td>R$ ${totalR.toFixed(2)}</td><td>R$ ${totalD.toFixed(2)}</td><td>R$ ${(totalR-totalD).toFixed(2)}</td></tr> zain`;
+        html+=`<tr style="font-weight:bold; background:#f3f4f6;">
+                    <td>TOTAL</td>
+                    <td>R$ ${totalR.toFixed(2)}</td>
+                    <td>R$ ${totalD.toFixed(2)}</td>
+                    <td>R$ ${(totalR-totalD).toFixed(2)}</td>
+                </tr>
+            </tbody>
+        </table>`;
+        
         // Adicionar rodapé com assinaturas
         html += adicionarRodapeAssinaturas();
         
@@ -916,7 +944,7 @@
                         <button id="fecharRelatorioAvancado" style="background:#dc2626;"><i class="fas fa-times"></i> Fechar</button>
                     </div>
                 </div>
-                <div id="conteudoRelatorioAvancado">${html}</div>
+                <div id="conteudoRelatorioAvancado" style="font-family: Arial, sans-serif;">${html}</div>
             </div>
         `;
         document.body.appendChild(modal);
@@ -925,16 +953,66 @@
         document.getElementById('imprimirRelatorioAvancado').onclick = () => {
             const conteudo = document.getElementById('conteudoRelatorioAvancado').innerHTML;
             const win = window.open('', '_blank');
-            win.document.write(`<html><head><title>Relatório Avançado ${ano}</title><style>
-                body{font-family:Arial;padding:20px}
-                table{border-collapse:collapse;width:100%}
-                th,td{border:1px solid #ddd;padding:8px}
-                th{background:#064e3b;color:white}
-                @media print {
-                    body{margin:0;padding:20px}
-                    button{display:none}
-                }
-            </style></head><body>${conteudo}<script>window.print();<\/script></body></html>`);
+            win.document.write(`<html>
+                <head>
+                    <title>Relatório Avançado ${ano} - ${igrejaAtual?.nome}</title>
+                    <style>
+                        * { margin: 0; padding: 0; box-sizing: border-box; }
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            padding: 20px; 
+                            margin: 0;
+                            position: relative;
+                            min-height: 100vh;
+                        }
+                        table { 
+                            border-collapse: collapse; 
+                            width: 100%; 
+                            margin-bottom: 20px;
+                        }
+                        th, td { 
+                            border: 1px solid #ddd; 
+                            padding: 8px; 
+                        }
+                        th { 
+                            background: #064e3b; 
+                            color: white; 
+                        }
+                        .assinaturas-rodape {
+                            position: relative;
+                            margin-top: 80px;
+                            page-break-inside: avoid;
+                            page-break-before: avoid;
+                        }
+                        @media print {
+                            body { 
+                                margin: 0; 
+                                padding: 20px;
+                            }
+                            .assinaturas-rodape {
+                                position: fixed;
+                                bottom: 0;
+                                left: 0;
+                                right: 0;
+                                margin-top: 0;
+                                background: white;
+                                padding: 20px;
+                            }
+                            button { display: none; }
+                            @page {
+                                margin: 2cm;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${conteudo}
+                    <script>
+                        window.print();
+                        setTimeout(() => window.close(), 1000);
+                    <\/script>
+                </body>
+            </html>`);
             win.document.close();
         };
         
@@ -956,7 +1034,7 @@
             element.style.padding = '0';
             
             const opt = {
-                margin: [0.5, 0.5, 0.5, 0.5], // [top, right, bottom, left] em unidades
+                margin: [0.5, 0.5, 0.5, 0.5],
                 filename: `relatorio_${new Date().toISOString().slice(0,10)}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true, logging: false },
@@ -1002,7 +1080,7 @@
         if (editandoId) { transacoes = transacoes.map(t => t.id === editandoId ? novaTransacao : t); editandoId = null; } else { transacoes.push(novaTransacao); }
         await salvarTransacoes(igrejaAtual.id, transacoes);
         await atualizarInterface();
-        limparFormularioLancamento(); // Limpa os campos após salvar
+        limparFormularioLancamento();
         showToast('✅ Transação salva localmente' + (navigator.onLine ? '' : ' (offline, sincronizará depois)'), 'success');
     };
     document.getElementById('cancelarEdicao').onclick = () => { limparFormularioLancamento(); };
@@ -1011,10 +1089,10 @@
     document.getElementById('adicionarIgreja').onclick = async () => { if (!usuarioLogado?.isMaster) return alert('Apenas master'); const nome = document.getElementById('novaIgrejaNome').value.trim(); const senha = document.getElementById('novaIgrejaSenha').value; const endereco = document.getElementById('novaIgrejaEndereco').value; await adicionarIgrejaAdmin(nome, senha, endereco); document.getElementById('novaIgrejaNome').value = ''; document.getElementById('novaIgrejaSenha').value = ''; document.getElementById('novaIgrejaEndereco').value = ''; };
     document.getElementById('gerarRelatorio').onclick = () => { if(!igrejaAtual) return alert('Selecione uma igreja'); const mes = parseInt(document.getElementById('relMes').value); const ano = parseInt(document.getElementById('relAno').value); gerarRelatorio(mes, ano); };
     document.getElementById('imprimirRelatorio').onclick = () => { const c = document.getElementById('conteudoRelatorio').innerHTML; if(!c) return; const win = window.open('','_blank'); win.document.write(`<html><head><title>Relatório</title><style>body{font-family:Arial;padding:20px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px}th{background:#064e3b;color:white}@media print{body{margin:0;padding:20px}}</style></head><body>${c}<script>window.print();<\/script></body></html>`); win.document.close(); };
-    document.getElementById('exportarPDF').onclick = exportarPDFComMargens; // Usando a nova função com margens corrigidas
+    document.getElementById('exportarPDF').onclick = exportarPDFComMargens;
     document.getElementById('fazerBackup').onclick = exportarBackup;
     document.getElementById('restoreFile').onchange = (e) => { if(e.target.files[0]) restaurarBackup(e.target.files[0]); e.target.value = ''; };
-    document.getElementById('btnRelatorioAvancado').onclick = relatorioAvancadoComImpressao; // Usando a nova função com botão imprimir
+    document.getElementById('btnRelatorioAvancado').onclick = relatorioAvancadoComImpressao;
     document.getElementById('alterarSenhaMasterBtn').onclick = async () => { if(!usuarioLogado?.isMaster) return alert('Apenas master'); const nova = document.getElementById('novaSenhaMaster').value.trim(); if(!nova || nova.length<4) return alert('Senha deve ter pelo menos 4 caracteres'); MASTER_SENHA = nova; await salvarConfigMaster(nova); alert('✅ Senha master alterada! Use a nova senha no próximo login.'); document.getElementById('novaSenhaMaster').value = ''; };
     
     document.getElementById('recarregarDadosBtn').onclick = recarregarDados;
@@ -1032,7 +1110,7 @@
     })();
 
     // ============================================
-    // PWA: Sistema de Instalação Nativa (inalterado)
+    // PWA: Sistema de Instalação Nativa
     // ============================================
     (function setupPWA() {
         async function generateIcon(size, bgColor = "#064e3b", iconColor = "#ffffff") {
@@ -1182,4 +1260,4 @@
     })();
 </script>
 </body>
-                                                                    </html>
+    </html>

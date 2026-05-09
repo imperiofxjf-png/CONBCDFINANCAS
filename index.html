@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>CONBCD FINANÇAS | Multi-Igrejas com Login Master (Versão Aprimorada)</title>
-    <!-- PWA: manifest será gerado dinamicamente -->
     <link rel="manifest" id="dynamic-manifest">
-    <!-- PWA: ícone para iOS -->
     <link rel="apple-touch-icon" id="apple-touch-icon">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -58,7 +56,7 @@
         .badge-receita { background: #d1fae5; color: #065f46; }
         .badge-despesa { background: #fee2e2; color: #991b1b; }
         .charts-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin: 25px 0; }
-        .chart-box { background: #f9fafb; padding: 20px; border-radius: 20px; }
+        .chart-box { background: #f9fafb; padding: 20px; border-radius: 20px; min-height: 300px; }
         .categoria-item, .forma-item { display: inline-flex; align-items: center; gap: 10px; background: #eef2ff; padding: 8px 16px; border-radius: 40px; margin: 5px; }
         .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 99999; display: flex; align-items: center; justify-content: center; }
         .loading-content { background: white; padding: 30px; border-radius: 20px; color: #064e3b; text-align: center; }
@@ -67,7 +65,6 @@
         .edit-btn { background: #f59e0b; margin-right: 5px; }
         .small-btn { padding: 5px 10px; font-size: 0.8rem; }
         
-        /* PWA: botão flutuante de instalação */
         .install-button {
             position: fixed;
             bottom: 20px;
@@ -90,39 +87,13 @@
         .install-button:hover { transform: scale(1.05); }
         .install-button i { font-size: 1.3rem; }
         
-        /* NOVOS ESTILOS: indicador de conectividade e botão recarregar */
-        .status-online {
-            background: #10b981;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 30px;
-            font-size: 0.8rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .status-offline {
-            background: #ef4444;
-            color: white;
-            padding: 5px 12px;
-            border-radius: 30px;
-            font-size: 0.8rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .btn-reload {
-            background: #3b82f6;
-            padding: 5px 12px;
-            border-radius: 30px;
-            font-size: 0.8rem;
-            margin-left: 10px;
-        }
+        .status-online { background: #10b981; color: white; padding: 5px 12px; border-radius: 30px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px; }
+        .status-offline { background: #ef4444; color: white; padding: 5px 12px; border-radius: 30px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-reload { background: #3b82f6; padding: 5px 12px; border-radius: 30px; font-size: 0.8rem; margin-left: 10px; }
     </style>
 </head>
 <body>
 
-<!-- TELA DE LOGIN -->
 <div id="loginOverlay" class="login-overlay">
     <div class="login-box">
         <div style="font-size: 48px;">🏛️</div>
@@ -141,7 +112,6 @@
     </div>
 </div>
 
-<!-- CONTEÚDO PRINCIPAL -->
 <div id="appContent" style="display: none;">
 <div class="container">
     <div class="header-institucional no-print">
@@ -149,9 +119,7 @@
             <h1><i class="fas fa-church"></i> <span id="igrejaNomeHeader">CONBCD</span> FINANÇAS</h1>
             <div class="user-info">
                 <i class="fas fa-user-lock"></i> <span id="usuarioLogadoLabel"></span>
-                <!-- NOVO: indicador de conectividade -->
                 <span id="conectividadeStatus" class="status-online"><i class="fas fa-wifi"></i> Online</span>
-                <!-- NOVO: botão recarregar dados -->
                 <button id="btnRecarregarDados" class="btn-reload" title="Recarregar dados do banco local"><i class="fas fa-sync-alt"></i> Recarregar</button>
                 <button id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Sair</button>
             </div>
@@ -182,7 +150,6 @@
         <button class="tab-btn" data-tab="backup"><i class="fas fa-database"></i> Backup</button>
     </div>
 
-    <!-- DASHBOARD -->
     <div id="dashboard" class="panel active-panel">
         <h2><i class="fas fa-chart-pie"></i> Dashboard Financeiro</h2>
         <div class="charts-row">
@@ -206,7 +173,6 @@
         </div>
     </div>
 
-    <!-- LANÇAMENTOS -->
     <div id="lancamentos" class="panel">
         <h2 id="formTitle"><i class="fas fa-plus-circle"></i> Novo Lançamento</h2>
         <div class="form-grid">
@@ -227,7 +193,6 @@
         </div>
     </div>
 
-    <!-- CATEGORIAS E FORMAS DE PAGAMENTO -->
     <div id="categorias" class="panel">
         <h2><i class="fas fa-tags"></i> Gerenciar Categorias</h2>
         <div class="form-grid">
@@ -236,7 +201,6 @@
             <div><button id="adicionarCategoria"><i class="fas fa-plus"></i> Adicionar</button></div>
         </div>
         <div id="listaCategorias"></div>
-
         <hr style="margin: 30px 0;">
         <h2><i class="fas fa-credit-card"></i> Formas de Pagamento</h2>
         <div class="form-grid">
@@ -246,7 +210,6 @@
         <div id="listaFormasPagamento"></div>
     </div>
 
-    <!-- RELATÓRIOS -->
     <div id="relatorios" class="panel">
         <h2><i class="fas fa-chart-bar"></i> Relatórios Financeiros</h2>
         <div class="form-grid">
@@ -262,7 +225,6 @@
         <div id="conteudoRelatorio" class="relatorio-box"></div>
     </div>
 
-    <!-- ADMIN: IGREJAS (somente master) -->
     <div id="igrejas" class="panel">
         <h2><i class="fas fa-church"></i> Administração de Igrejas (Master)</h2>
         <p style="color: #ef4444; margin-bottom: 15px;"><i class="fas fa-shield-alt"></i> Esta área é restrita ao administrador master</p>
@@ -286,7 +248,6 @@
         </div>
     </div>
 
-    <!-- BACKUP -->
     <div id="backup" class="panel">
         <h2><i class="fas fa-shield-alt"></i> Backup e Restauração</h2>
         <div class="form-grid">
@@ -299,16 +260,14 @@
 </div>
 </div>
 
-<!-- PWA: Botão flutuante de instalação -->
 <button id="installBtn" class="install-button"><i class="fas fa-download"></i> Instalar App</button>
 
 <script>
     // ============================================
-    // CÓDIGO ORIGINAL (NÃO MODIFICADO) - apenas pequenas correções pontuais
+    // CÓDIGO ORIGINAL (preservado integralmente)
     // ============================================
-    
     const DB_NAME = 'CONBCD_Multi_Igrejas_DB';
-    const DB_VERSION = 4;  // Incrementado para incluir formasPagamento e config
+    const DB_VERSION = 4;
     let db = null;
     let todasIgrejas = [];
     let igrejaAtual = null;
@@ -316,10 +275,9 @@
     let categorias = [];
     let formasPagamento = [];
     let usuarioLogado = null;
-    let MASTER_SENHA = 'admin123';  // será carregado do banco
-    let editandoId = null; // ID da transação sendo editada
+    let MASTER_SENHA = 'admin123';
+    let editandoId = null;
     
-    // Inicializar IndexedDB
     function initDatabase() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -327,9 +285,7 @@
             request.onsuccess = (e) => { db = e.target.result; resolve(db); };
             request.onupgradeneeded = (e) => {
                 const db = e.target.result;
-                if (!db.objectStoreNames.contains('igrejas')) {
-                    db.createObjectStore('igrejas', { keyPath: 'id' });
-                }
+                if (!db.objectStoreNames.contains('igrejas')) db.createObjectStore('igrejas', { keyPath: 'id' });
                 if (!db.objectStoreNames.contains('transacoes')) {
                     const transStore = db.createObjectStore('transacoes', { keyPath: 'id' });
                     transStore.createIndex('igrejaId', 'igrejaId');
@@ -342,14 +298,11 @@
                     const fpStore = db.createObjectStore('formasPagamento', { keyPath: 'id' });
                     fpStore.createIndex('igrejaId', 'igrejaId');
                 }
-                if (!db.objectStoreNames.contains('config')) {
-                    db.createObjectStore('config', { keyPath: 'chave' });
-                }
+                if (!db.objectStoreNames.contains('config')) db.createObjectStore('config', { keyPath: 'chave' });
             };
         });
     }
     
-    // --- CRUD Genérico para stores com índice por igrejaId ---
     async function salvarItens(storeName, igrejaId, lista, mapFunc = (item, idx) => ({ ...item, id: `${igrejaId}_${Date.now()}_${idx}` })) {
         return new Promise((resolve, reject) => {
             const tx = db.transaction([storeName], 'readwrite');
@@ -357,18 +310,11 @@
             const index = store.index('igrejaId');
             const range = IDBKeyRange.only(igrejaId);
             const cursorReq = index.openCursor(range);
-            cursorReq.onsuccess = (e) => {
-                const cursor = e.target.result;
-                if (cursor) { store.delete(cursor.primaryKey); cursor.continue(); }
-            };
+            cursorReq.onsuccess = (e) => { const cursor = e.target.result; if (cursor) { store.delete(cursor.primaryKey); cursor.continue(); } };
             tx.oncomplete = () => {
                 const tx2 = db.transaction([storeName], 'readwrite');
                 const store2 = tx2.objectStore(storeName);
-                lista.forEach((item, idx) => {
-                    let id = item.id;
-                    if (!id) id = `${igrejaId}_${Date.now()}_${idx}`;
-                    store2.put({ ...item, id, igrejaId });
-                });
+                lista.forEach((item, idx) => { let id = item.id; if (!id) id = `${igrejaId}_${Date.now()}_${idx}`; store2.put({ ...item, id, igrejaId }); });
                 tx2.oncomplete = () => resolve();
                 tx2.onerror = (e) => reject(e);
             };
@@ -387,7 +333,6 @@
         });
     }
     
-    // Wrappers específicos
     async function salvarTransacoes(igrejaId, lista) { return salvarItens('transacoes', igrejaId, lista, (t, i) => ({ ...t, id: t.id || `${igrejaId}_trans_${Date.now()}_${i}` })); }
     async function carregarTransacoes(igrejaId) { return carregarItens('transacoes', igrejaId, x => x); }
     async function salvarCategorias(igrejaId, lista) { return salvarItens('categorias', igrejaId, lista, (c, i) => ({ nome: c.nome, tipo: c.tipo, id: c.id || `${igrejaId}_cat_${Date.now()}_${i}` })); }
@@ -395,7 +340,6 @@
     async function salvarFormasPagamento(igrejaId, lista) { return salvarItens('formasPagamento', igrejaId, lista, (f, i) => ({ nome: f.nome, id: f.id || `${igrejaId}_fp_${Date.now()}_${i}` })); }
     async function carregarFormasPagamento(igrejaId) { const items = await carregarItens('formasPagamento', igrejaId, x => ({ nome: x.nome, id: x.id })); return items.map(f => f.nome); }
     
-    // CRUD Igrejas (sem index)
     async function salvarIgrejas(igrejas) {
         return new Promise((resolve, reject) => {
             const tx = db.transaction(['igrejas'], 'readwrite');
@@ -416,16 +360,12 @@
         });
     }
     
-    // Configuração: senha master
     async function carregarConfigMaster() {
         return new Promise((resolve) => {
             const tx = db.transaction(['config'], 'readonly');
             const store = tx.objectStore('config');
             const req = store.get('masterSenha');
-            req.onsuccess = () => {
-                if (req.result) MASTER_SENHA = req.result.valor;
-                resolve();
-            };
+            req.onsuccess = () => { if (req.result) MASTER_SENHA = req.result.valor; resolve(); };
             req.onerror = () => resolve();
         });
     }
@@ -438,7 +378,6 @@
         });
     }
     
-    // Utilitários
     function showLoading(msg) {
         let loading = document.querySelector('.loading-overlay');
         if (!loading) {
@@ -450,7 +389,6 @@
     }
     function hideLoading() { const loading = document.querySelector('.loading-overlay'); if (loading) loading.style.display = 'none'; }
     
-    // Login
     async function fazerLogin(identificador, senha) {
         if (identificador === 'MASTER') {
             if (senha === MASTER_SENHA) {
@@ -496,7 +434,6 @@
         if (!igrejaAtual) return;
         document.getElementById('igrejaNomeHeader').innerHTML = igrejaAtual.nome;
         document.getElementById('usuarioLogadoLabel').innerHTML = `${igrejaAtual.nome} <i class="fas fa-check-circle"></i>`;
-        // Remove completamente a aba de igrejas para usuário comum
         const tabIgrejas = document.getElementById('tabIgrejasBtn');
         const painelIgrejas = document.getElementById('igrejas');
         if (tabIgrejas) tabIgrejas.remove();
@@ -504,7 +441,6 @@
         await atualizarInterface();
     }
     
-    // Função auxiliar para limpar formulário de lançamentos
     function limparFormularioLancamento() {
         document.getElementById('valorTransacao').value = '';
         document.getElementById('descTransacao').value = '';
@@ -515,8 +451,10 @@
         document.getElementById('salvarTransacao').innerHTML = '<i class="fas fa-save"></i> Salvar';
         document.getElementById('cancelarEdicao').style.display = 'none';
     }
-
-    // CORREÇÃO: Função para recriar gráficos (Gráfico Pizza agora funciona 100%)
+    
+    // ============================================
+    // GRÁFICO PIZZA - CORRIGIDO
+    // ============================================
     function recriarGraficos() {
         if (!igrejaAtual) return;
         const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
@@ -526,19 +464,22 @@
         const ctxBar = document.getElementById('graficoMensal')?.getContext('2d');
         if (ctxBar) { if (window.graficoBarra) window.graficoBarra.destroy(); window.graficoBarra = new Chart(ctxBar, { type: 'bar', data: { labels: meses, datasets: [{ label: 'Receitas', data: recMensal, backgroundColor: '#10b981' }, { label: 'Despesas', data: despMensal, backgroundColor: '#ef4444' }] } }); }
         
-        let despCat = {};
-        transacoes.filter(t => t.tipo === 'despesa').forEach(t => { despCat[t.categoria] = (despCat[t.categoria] || 0) + t.valor; });
+        // Gráfico Pizza corrigido
         const ctxPizza = document.getElementById('graficoPizza')?.getContext('2d');
         if (ctxPizza) {
             if (window.graficoPizza) window.graficoPizza.destroy();
+            
+            let despCat = {};
+            transacoes.filter(t => t.tipo === 'despesa').forEach(t => { despCat[t.categoria] = (despCat[t.categoria] || 0) + t.valor; });
+            
             if (Object.keys(despCat).length === 0) {
-                // Gráfico vazio com mensagem
+                // Exibir mensagem central quando não há despesas
                 window.graficoPizza = new Chart(ctxPizza, {
                     type: 'pie',
-                    data: { labels: ['Nenhuma despesa'], datasets: [{ data: [1], backgroundColor: ['#e5e7eb'] }] },
-                    options: { plugins: { tooltip: { callbacks: { label: () => 'Sem dados' } }, legend: { display: false } } }
+                    data: { labels: ['Sem despesas'], datasets: [{ data: [1], backgroundColor: ['#e5e7eb'] }] },
+                    options: { responsive: true, maintainAspectRatio: true, plugins: { tooltip: { enabled: false }, legend: { display: false } } }
                 });
-                // Adicionar mensagem central
+                // Adiciona mensagem centralizada
                 const originalDraw = window.graficoPizza.draw;
                 window.graficoPizza.draw = function() {
                     originalDraw.apply(this, arguments);
@@ -554,13 +495,12 @@
                 };
                 window.graficoPizza.draw();
             } else {
-                // Cria o gráfico normalmente - agora com cores dinâmicas para muitas categorias
                 const cores = ['#f59e0b','#ef4444','#8b5cf6','#10b981','#3b82f6','#ec4899','#06b6d4','#84cc16','#f97316','#d946ef'];
                 const labels = Object.keys(despCat);
                 const valores = Object.values(despCat);
                 const bgColors = labels.map((_, i) => cores[i % cores.length]);
-                window.graficoPizza = new Chart(ctxPizza, { 
-                    type: 'pie', 
+                window.graficoPizza = new Chart(ctxPizza, {
+                    type: 'pie',
                     data: { labels: labels, datasets: [{ data: valores, backgroundColor: bgColors }] },
                     options: { responsive: true, maintainAspectRatio: true }
                 });
@@ -589,14 +529,12 @@
         document.getElementById('totalDespesas').innerHTML = `R$ ${totalDesp.toFixed(2)}`;
         document.getElementById('saldoTotal').innerHTML = `R$ ${(totalRec - totalDesp).toFixed(2)}`;
         
-        // Categorias no select
         const catSelect = document.getElementById('categoriaSelect');
         if (catSelect) {
             catSelect.innerHTML = '';
             categorias.forEach(c => { const opt = document.createElement('option'); opt.value = c.nome; opt.textContent = `${c.nome} (${c.tipo})`; catSelect.appendChild(opt); });
             if (catSelect.options.length > 0) catSelect.selectedIndex = 0;
         }
-        // Formas de pagamento
         const fpSelect = document.getElementById('formaPagamento');
         if (fpSelect) {
             fpSelect.innerHTML = '';
@@ -604,7 +542,6 @@
             if (fpSelect.options.length > 0) fpSelect.selectedIndex = 0;
         }
         
-        // Tabela de transações
         const tbody = document.querySelector('#tabelaTransacoes tbody');
         if (tbody) {
             tbody.innerHTML = '';
@@ -631,7 +568,6 @@
             });
         }
         
-        // Renderizar categorias
         const catContainer = document.getElementById('listaCategorias');
         if (catContainer) {
             catContainer.innerHTML = '<h4>📌 Categorias</h4>';
@@ -641,7 +577,6 @@
                 catContainer.appendChild(div);
             });
         }
-        // Renderizar formas de pagamento
         const fpContainer = document.getElementById('listaFormasPagamento');
         if (fpContainer) {
             fpContainer.innerHTML = '<h4>💳 Formas de Pagamento</h4>';
@@ -652,7 +587,6 @@
             });
         }
         
-        // Recriar gráficos (com a função corrigida)
         recriarGraficos();
         
         const ultimasTbody = document.querySelector('#ultimasTransacoes tbody');
@@ -677,7 +611,6 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     
-    // Admin: igrejas
     async function adicionarIgrejaAdmin(nome, senha, endereco = '') {
         if (!nome.trim()) return alert('Digite o nome da igreja');
         if (!senha || senha.length < 3) return alert('A senha deve ter pelo menos 3 caracteres');
@@ -715,7 +648,6 @@
     window.excluirCategoria = async function(idx) { if (!igrejaAtual) return; const nome = categorias[idx].nome; if (transacoes.some(t => t.categoria === nome)) alert('❌ Não pode excluir: há transações vinculadas'); else { categorias.splice(idx,1); await salvarCategorias(igrejaAtual.id, categorias); await atualizarInterface(); } };
     window.excluirFormaPagamento = async function(idx) { if (!igrejaAtual) return; const fp = formasPagamento[idx]; formasPagamento.splice(idx,1); await salvarFormasPagamento(igrejaAtual.id, formasPagamento.map(n=>({nome:n}))); await atualizarInterface(); };
     
-    // CORREÇÃO: Relatório agora mostra a descrição
     function gerarRelatorio(mes, ano) {
         if(!transacoes) return;
         const filtradas = transacoes.filter(t=>{ const d=new Date(t.data); return d.getMonth()+1===mes && d.getFullYear()===ano; });
@@ -733,8 +665,6 @@
         });
         
         let html = `<h4>📊 Relatório - ${mes}/${ano} - ${igrejaAtual?.nome}</h4>`;
-        
-        // Tabela de transações detalhada com descrição
         html += `<h5>📋 Lista de Transações</h5><table style="width:100%; border-collapse:collapse; border:1px solid #ddd;">
             <thead><tr style="background:#064e3b; color:white;"><th style="padding:10px;">Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th></tr></thead><tbody>`;
         if(filtradas.length===0) html+=`<tr><td colspan="5" style="text-align:center; padding:40px;">📭 Nenhuma transação encontrada</td></tr>`;
@@ -748,30 +678,16 @@
             </tr>`; 
         });
         html+=`</tbody></table>`;
-        
-        // Resumo por categoria (Receitas)
         html += `<h5>📈 Receitas por Categoria</h5><table style="width:100%; border-collapse:collapse; border:1px solid #ddd;">
             <thead><tr style="background:#10b981; color:white;"><th>Categoria</th><th>Valor</th></tr></thead><tbody>`;
         if (Object.keys(receitasPorCat).length === 0) html+=`<tr><td colspan="2">Nenhuma receita no período</td></tr>`;
-        else {
-            for (let [cat, val] of Object.entries(receitasPorCat)) {
-                html+=`<tr><td>${cat}</td><td>R$ ${val.toFixed(2)}</td></tr>`;
-            }
-        }
+        else { for (let [cat, val] of Object.entries(receitasPorCat)) { html+=`<tr><td>${cat}</td><td>R$ ${val.toFixed(2)}</td></tr>`; } }
         html+=`</tbody></table>`;
-        
-        // Resumo por categoria (Despesas)
         html += `<h5>📉 Despesas por Categoria</h5><table style="width:100%; border-collapse:collapse; border:1px solid #ddd;">
             <thead><tr style="background:#ef4444; color:white;"><th>Categoria</th><th>Valor</th></tr></thead><tbody>`;
         if (Object.keys(despesasPorCat).length === 0) html+=`<tr><td colspan="2">Nenhuma despesa no período</td></tr>`;
-        else {
-            for (let [cat, val] of Object.entries(despesasPorCat)) {
-                html+=`<tr><td>${cat}</td><td>R$ ${val.toFixed(2)}</td></tr>`;
-            }
-        }
+        else { for (let [cat, val] of Object.entries(despesasPorCat)) { html+=`<tr><td>${cat}</td><td>R$ ${val.toFixed(2)}</td></tr>`; } }
         html+=`</tbody></table>`;
-        
-        // Totais gerais
         html+=`<div style="margin-top:20px; padding:10px; background:#f3f4f6; border-radius:10px;">
             <strong>Totais:</strong> Receitas: R$ ${rec.toFixed(2)} | Despesas: R$ ${desp.toFixed(2)} | Saldo: R$ ${(rec-desp).toFixed(2)}
         </div>`;
@@ -779,7 +695,6 @@
         document.getElementById('conteudoRelatorio').innerHTML = html;
     }
     
-    // Backup completo
     async function exportarBackup() {
         const igrejas = await carregarIgrejas();
         const todasTransacoes = [];
@@ -832,18 +747,13 @@
                 this.classList.add('active');
                 const targetPanel = document.getElementById(targetId); if (targetPanel) targetPanel.classList.add('active-panel');
                 if (targetId === 'igrejas' && usuarioLogado?.isMaster) renderizarListaIgrejasAdmin();
-                // Se a aba selecionada for Dashboard, recria os gráficos para garantir exibição correta
                 if (targetId === 'dashboard' && !usuarioLogado?.isMaster && igrejaAtual) {
-                    // Pequeno atraso para garantir que o canvas esteja visível
-                    setTimeout(() => recriarGraficos(), 50);
+                    setTimeout(() => recriarGraficos(), 80);
                 }
             });
         });
     }
     
-    // ============================================
-    // NOVAS FUNÇÕES: CONECTIVIDADE E RECARGA MANUAL
-    // ============================================
     function atualizarStatusConexao() {
         const statusSpan = document.getElementById('conectividadeStatus');
         if (navigator.onLine) {
@@ -854,16 +764,14 @@
             statusSpan.className = 'status-offline';
         }
     }
-
+    
     async function recarregarDadosManualmente() {
         if (!igrejaAtual && !usuarioLogado?.isMaster) return;
         showLoading('Recarregando dados locais...');
         try {
             if (usuarioLogado?.isMaster) {
-                // Apenas atualiza lista de igrejas
                 await renderizarListaIgrejasAdmin();
             } else if (igrejaAtual) {
-                // Recarrega transações, categorias e formas do IndexedDB
                 transacoes = await carregarTransacoes(igrejaAtual.id);
                 categorias = await carregarCategorias(igrejaAtual.id);
                 const formasRaw = await carregarFormasPagamento(igrejaAtual.id);
@@ -877,12 +785,10 @@
             alert('Erro ao recarregar: ' + err.message);
         }
     }
-
-    // Monitorar mudanças de conexão
+    
     window.addEventListener('online', atualizarStatusConexao);
     window.addEventListener('offline', atualizarStatusConexao);
     
-    // Eventos e inicialização
     document.getElementById('loginBtn').onclick = async () => {
         const identificador = document.getElementById('loginIgrejaSelect').value;
         const senha = document.getElementById('loginSenha').value;
@@ -904,7 +810,6 @@
     };
     document.getElementById('logoutBtn').onclick = logout;
     
-    // MODIFICAÇÃO: Salvar transação com mensagem offline/online
     document.getElementById('salvarTransacao').onclick = async () => {
         if (!igrejaAtual) return alert('Selecione uma igreja');
         const valor = parseFloat(document.getElementById('valorTransacao').value);
@@ -921,21 +826,41 @@
             alert('✅ Transação salva!');
         }
     };
-    document.getElementById('cancelarEdicao').onclick = () => {
-        limparFormularioLancamento();
-    };
+    document.getElementById('cancelarEdicao').onclick = () => { limparFormularioLancamento(); };
     document.getElementById('adicionarCategoria').onclick = async () => { if(!igrejaAtual) return; const nome = document.getElementById('novaCategoriaNome').value.trim(); const tipo = document.getElementById('tipoCategoria').value; if(!nome) return; if(categorias.find(c=>c.nome===nome)) return alert('Já existe'); categorias.push({ nome, tipo }); await salvarCategorias(igrejaAtual.id, categorias); await atualizarInterface(); document.getElementById('novaCategoriaNome').value = ''; };
     document.getElementById('adicionarFormaPagamento').onclick = async () => { if(!igrejaAtual) return; const nome = document.getElementById('novaFormaNome').value.trim(); if(!nome) return; if(formasPagamento.includes(nome)) return alert('Já existe'); formasPagamento.push(nome); await salvarFormasPagamento(igrejaAtual.id, formasPagamento.map(n=>({nome:n}))); await atualizarInterface(); document.getElementById('novaFormaNome').value = ''; };
     document.getElementById('adicionarIgreja').onclick = async () => { if (!usuarioLogado?.isMaster) return alert('Apenas master'); const nome = document.getElementById('novaIgrejaNome').value.trim(); const senha = document.getElementById('novaIgrejaSenha').value; const endereco = document.getElementById('novaIgrejaEndereco').value; await adicionarIgrejaAdmin(nome, senha, endereco); document.getElementById('novaIgrejaNome').value = ''; document.getElementById('novaIgrejaSenha').value = ''; document.getElementById('novaIgrejaEndereco').value = ''; };
     document.getElementById('gerarRelatorio').onclick = () => { if(!igrejaAtual) return alert('Selecione uma igreja'); const mes = parseInt(document.getElementById('relMes').value); const ano = parseInt(document.getElementById('relAno').value); gerarRelatorio(mes, ano); };
     document.getElementById('imprimirRelatorio').onclick = () => { const c = document.getElementById('conteudoRelatorio').innerHTML; if(!c) return; const win = window.open('','_blank'); win.document.write(`<html><head><title>Relatório</title><style>body{font-family:Arial;padding:20px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px}th{background:#064e3b;color:white}</style></head><body>${c}<script>window.print();<\/script></body></html>`); win.document.close(); };
-    document.getElementById('exportarPDF').onclick = async () => { const c = document.getElementById('conteudoRelatorio').innerHTML; if(!c) return; const el = document.createElement('div'); el.innerHTML = `<div style="padding:20px"><h1>${igrejaAtual?.nome}</h1>${c}</div>`; await html2pdf().from(el).save(); };
+    
+    // ============================================
+    // CORREÇÃO DO PDF: Agora gera o relatório completo
+    // ============================================
+    document.getElementById('exportarPDF').onclick = async () => { 
+        const conteudo = document.getElementById('conteudoRelatorio').innerHTML; 
+        if(!conteudo) return alert('Nenhum relatório gerado. Clique em "Gerar" primeiro.');
+        const element = document.createElement('div');
+        element.innerHTML = `<div style="padding:20px; background:white; width:100%;">
+            <h1 style="text-align:center;">${igrejaAtual?.nome || 'CONBCD'}</h1>
+            ${conteudo}
+        </div>`;
+        document.body.appendChild(element);
+        try {
+            await html2pdf().set({
+                margin: [0.5, 0.5, 0.5, 0.5],
+                filename: `relatorio_${igrejaAtual?.nome || 'igreja'}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, letterRendering: true },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            }).from(element).save();
+        } catch(err) { console.error(err); alert('Erro ao gerar PDF: '+err.message); }
+        document.body.removeChild(element);
+    };
+    
     document.getElementById('fazerBackup').onclick = exportarBackup;
     document.getElementById('restoreFile').onchange = (e) => { if(e.target.files[0]) restaurarBackup(e.target.files[0]); e.target.value = ''; };
     document.getElementById('btnRelatorioAvancado').onclick = () => { if(!igrejaAtual) return; const ano = prompt('Ano:', new Date().getFullYear()); if(!ano) return; const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']; let html = `<h3>Relatório Avançado ${ano} - ${igrejaAtual?.nome}</h3><table border="1"><tr style="background:#064e3b;color:white"><th>Mês</th><th>Receitas</th><th>Despesas</th><th>Saldo</th></tr>`; let totalR=0,totalD=0; for(let i=0;i<12;i++){ let rec=0,desp=0; transacoes.forEach(t=>{ const d=new Date(t.data); if(d.getFullYear()==ano && d.getMonth()==i){ if(t.tipo==='receita') rec+=t.valor; else desp+=t.valor; } }); totalR+=rec; totalD+=desp; html+=`<tr><td>${meses[i]}</td><td>R$ ${rec.toFixed(2)}</td><td>R$ ${desp.toFixed(2)}</td><td style="color:${rec-desp>=0?'green':'red'}">R$ ${(rec-desp).toFixed(2)}</td></tr>`; } html+=`<tr style="font-weight:bold"><td>TOTAL</td><td>R$ ${totalR.toFixed(2)}</td><td>R$ ${totalD.toFixed(2)}</td><td>R$ ${(totalR-totalD).toFixed(2)}</td></tr></table>`; const modal = document.createElement('div'); modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:100000;display:flex;align-items:center;justify-content:center'; modal.innerHTML = `<div style="background:white;padding:30px;border-radius:20px;max-width:90%;max-height:90%;overflow:auto"><div style="display:flex;justify-content:space-between"><h3>Relatório ${ano}</h3><button onclick="this.parentElement.parentElement.parentElement.remove()" style="background:#dc2626">Fechar</button></div>${html}</div>`; document.body.appendChild(modal); };
     document.getElementById('alterarSenhaMasterBtn').onclick = async () => { if(!usuarioLogado?.isMaster) return alert('Apenas master'); const nova = document.getElementById('novaSenhaMaster').value.trim(); if(!nova || nova.length<4) return alert('Senha deve ter pelo menos 4 caracteres'); MASTER_SENHA = nova; await salvarConfigMaster(nova); alert('✅ Senha master alterada! Use a nova senha no próximo login.'); document.getElementById('novaSenhaMaster').value = ''; };
-    
-    // NOVO: Evento do botão recarregar dados
     document.getElementById('btnRecarregarDados')?.addEventListener('click', recarregarDadosManualmente);
     
     (async function() {
@@ -945,13 +870,11 @@
         if (igrejas.length === 0) { await adicionarIgrejaAdmin('CONBCD', 'conbcd123', 'Igreja CONBCD - Sede'); }
         await carregarListaIgrejasLogin();
         initTabs();
-        atualizarStatusConexao(); // NOVO: definir status inicial
+        atualizarStatusConexao();
         hideLoading();
     })();
-
-    // ============================================
-    // PWA: Sistema de Instalação Nativa (ADD-ON) - inalterado
-    // ============================================
+    
+    // PWA
     (function setupPWA() {
         async function generateIcon(size, bgColor = "#064e3b", iconColor = "#ffffff") {
             return new Promise((resolve) => {
@@ -961,6 +884,22 @@
                 const ctx = canvas.getContext('2d');
                 ctx.fillStyle = bgColor;
                 ctx.beginPath();
+                if (!CanvasRenderingContext2D.prototype.roundRect) {
+                    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+                        if (w < 2 * r) r = w / 2;
+                        if (h < 2 * r) r = h / 2;
+                        this.moveTo(x+r, y);
+                        this.lineTo(x+w-r, y);
+                        this.quadraticCurveTo(x+w, y, x+w, y+r);
+                        this.lineTo(x+w, y+h-r);
+                        this.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
+                        this.lineTo(x+r, y+h);
+                        this.quadraticCurveTo(x, y+h, x, y+h-r);
+                        this.lineTo(x, y+r);
+                        this.quadraticCurveTo(x, y, x+r, y);
+                        return this;
+                    };
+                }
                 ctx.roundRect(0, 0, size, size, size * 0.2);
                 ctx.fill();
                 ctx.fillStyle = iconColor;
@@ -971,134 +910,43 @@
                 ctx.font = `bold ${size * 0.25}px "Segoe UI"`;
                 ctx.fillStyle = "#fbbf24";
                 ctx.fillText("$", size*0.7, size*0.7);
-                canvas.toBlob(blob => {
-                    const url = URL.createObjectURL(blob);
-                    resolve({ url, size });
-                });
+                canvas.toBlob(blob => { resolve({ url: URL.createObjectURL(blob), size }); });
             });
         }
-
-        if (!CanvasRenderingContext2D.prototype.roundRect) {
-            CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-                if (w < 2 * r) r = w / 2;
-                if (h < 2 * r) r = h / 2;
-                this.moveTo(x+r, y);
-                this.lineTo(x+w-r, y);
-                this.quadraticCurveTo(x+w, y, x+w, y+r);
-                this.lineTo(x+w, y+h-r);
-                this.quadraticCurveTo(x+w, y+h, x+w-r, y+h);
-                this.lineTo(x+r, y+h);
-                this.quadraticCurveTo(x, y+h, x, y+h-r);
-                this.lineTo(x, y+r);
-                this.quadraticCurveTo(x, y, x+r, y);
-                return this;
-            };
-        }
-
         async function createManifest() {
             const sizes = [72, 96, 128, 144, 192, 384, 512];
             const icons = [];
             for (let sz of sizes) {
                 const { url } = await generateIcon(sz);
-                icons.push({
-                    src: url,
-                    sizes: `${sz}x${sz}`,
-                    type: "image/png",
-                    purpose: "any maskable"
-                });
+                icons.push({ src: url, sizes: `${sz}x${sz}`, type: "image/png", purpose: "any maskable" });
             }
-            const manifest = {
-                name: "CONBCD FINANÇAS",
-                short_name: "CONBCD",
-                description: "Sistema de Gestão Financeira para Igrejas",
-                start_url: "./",
-                display: "standalone",
-                theme_color: "#064e3b",
-                background_color: "#f0fdf4",
-                orientation: "portrait",
-                icons: icons
-            };
+            const manifest = { name: "CONBCD FINANÇAS", short_name: "CONBCD", description: "Sistema de Gestão Financeira para Igrejas", start_url: "./", display: "standalone", theme_color: "#064e3b", background_color: "#f0fdf4", orientation: "portrait", icons: icons };
             const manifestBlob = new Blob([JSON.stringify(manifest)], { type: "application/json" });
             const manifestURL = URL.createObjectURL(manifestBlob);
             const manifestLink = document.getElementById('dynamic-manifest');
             if (manifestLink) manifestLink.href = manifestURL;
-            if (icons.length) {
-                const appleIcon = document.getElementById('apple-touch-icon');
-                if (appleIcon) appleIcon.href = icons.find(i => i.sizes === "512x512")?.src || icons[icons.length-1].src;
-            }
+            const appleIcon = document.getElementById('apple-touch-icon');
+            if (appleIcon && icons.length) appleIcon.href = icons.find(i => i.sizes === "512x512")?.src || icons[icons.length-1].src;
         }
-
         function registerServiceWorker() {
-            const swCode = `
-                const CACHE_NAME = 'conbcd-cache-v1';
-                const urlsToCache = [
-                    './',
-                    '${window.location.href}',
-                    'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
-                    'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js',
-                    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css'
-                ];
-                
-                self.addEventListener('install', event => {
-                    event.waitUntil(
-                        caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
-                    );
-                });
-                
-                self.addEventListener('fetch', event => {
-                    event.respondWith(
-                        caches.match(event.request).then(response => {
-                            return response || fetch(event.request);
-                        })
-                    );
-                });
-                
-                self.addEventListener('activate', event => {
-                    event.waitUntil(
-                        caches.keys().then(keys => Promise.all(
-                            keys.map(key => {
-                                if (key !== CACHE_NAME) return caches.delete(key);
-                            })
-                        ))
-                    );
-                });
-            `;
+            const swCode = `const CACHE_NAME = 'conbcd-cache-v1';
+                const urlsToCache = ['./', '${window.location.href}', 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js', 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css'];
+                self.addEventListener('install', event => { event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))); });
+                self.addEventListener('fetch', event => { event.respondWith(caches.match(event.request).then(response => { return response || fetch(event.request); })); });
+                self.addEventListener('activate', event => { event.waitUntil(caches.keys().then(keys => Promise.all(keys.map(key => { if (key !== CACHE_NAME) return caches.delete(key); })))); });`;
             const blob = new Blob([swCode], { type: 'application/javascript' });
             const swUrl = URL.createObjectURL(blob);
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register(swUrl).then(reg => {
-                    console.log('Service Worker registrado com sucesso!', reg);
-                }).catch(err => console.error('Falha ao registrar SW:', err));
-            }
+            if ('serviceWorker' in navigator) { navigator.serviceWorker.register(swUrl).then(reg => console.log('SW registrado')).catch(err => console.error('Falha SW:', err)); }
         }
-
         let deferredPrompt = null;
         const installBtn = document.getElementById('installBtn');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBtn.style.display = 'flex';
-        });
-
+        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; installBtn.style.display = 'flex'; });
         installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    installBtn.style.display = 'none';
-                }
-                deferredPrompt = null;
-            } else {
-                alert('Para instalar, clique no menu do navegador → "Adicionar à tela inicial"');
-            }
+            if (deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; if (outcome === 'accepted') installBtn.style.display = 'none'; deferredPrompt = null; }
+            else { alert('Para instalar, clique no menu do navegador → "Adicionar à tela inicial"'); }
         });
-
-        window.addEventListener('load', () => {
-            createManifest();
-            registerServiceWorker();
-        });
+        window.addEventListener('load', () => { createManifest(); registerServiceWorker(); });
     })();
 </script>
 </body>
-            </html>
+    </html>

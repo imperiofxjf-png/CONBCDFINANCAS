@@ -56,7 +56,6 @@
         .btn-secondary { background: #6b7280; }
         .table-responsive { overflow-x: auto; margin-top: 15px; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; min-width: 500px; }
-        /* CORREÇÃO: Títulos das tabelas em PRETO */
         th { 
             background: #f3f4f6; 
             padding: 10px 8px; 
@@ -79,7 +78,6 @@
         .toast-message { position: fixed; bottom: 20px; left: 20px; right: 20px; background: #1f2937; color: white; padding: 10px 16px; border-radius: 40px; z-index: 100000; font-size: 0.8rem; box-shadow: 0 5px 15px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 8px; animation: fadeInOut 3s ease; max-width: 90%; }
         @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(20px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(20px); } }
         
-        /* PWA: botão flutuante de instalação */
         .install-button {
             position: fixed;
             bottom: 20px;
@@ -102,7 +100,6 @@
         .install-button:hover { transform: scale(1.05); }
         .install-button i { font-size: 1.1rem; }
         
-        /* Ajustes específicos para telas muito pequenas (celular) */
         @media (max-width: 600px) {
             body { padding: 8px; }
             .header-institucional { padding: 15px; }
@@ -127,7 +124,6 @@
 </head>
 <body>
 
-<!-- TELA DE LOGIN -->
 <div id="loginOverlay" class="login-overlay">
     <div class="login-box">
         <div style="font-size: 48px;">🏛️</div>
@@ -146,7 +142,6 @@
     </div>
 </div>
 
-<!-- CONTEÚDO PRINCIPAL -->
 <div id="appContent" style="display: none;">
 <div class="container">
     <div class="header-institucional no-print">
@@ -186,7 +181,6 @@
         <button class="tab-btn" data-tab="backup"><i class="fas fa-database"></i> Backup</button>
     </div>
 
-    <!-- DASHBOARD -->
     <div id="dashboard" class="panel active-panel">
         <h2><i class="fas fa-chart-pie"></i> Dashboard Financeiro</h2>
         <div class="charts-row">
@@ -210,7 +204,6 @@
         </div>
     </div>
 
-    <!-- LANÇAMENTOS -->
     <div id="lancamentos" class="panel">
         <h2 id="formTitle"><i class="fas fa-plus-circle"></i> Novo Lançamento</h2>
         <div class="form-grid">
@@ -231,7 +224,6 @@
         </div>
     </div>
 
-    <!-- CATEGORIAS E FORMAS DE PAGAMENTO -->
     <div id="categorias" class="panel">
         <h2><i class="fas fa-tags"></i> Gerenciar Categorias</h2>
         <div class="form-grid">
@@ -250,7 +242,6 @@
         <div id="listaFormasPagamento"></div>
     </div>
 
-    <!-- RELATÓRIOS -->
     <div id="relatorios" class="panel">
         <h2><i class="fas fa-chart-bar"></i> Relatórios Financeiros</h2>
         <div class="form-grid">
@@ -266,7 +257,6 @@
         <div id="conteudoRelatorio" class="relatorio-box"></div>
     </div>
 
-    <!-- ADMIN: IGREJAS (somente master) -->
     <div id="igrejas" class="panel">
         <h2><i class="fas fa-church"></i> Administração de Igrejas (Master)</h2>
         <p style="color: #ef4444; margin-bottom: 15px;"><i class="fas fa-shield-alt"></i> Esta área é restrita ao administrador master</p>
@@ -290,7 +280,6 @@
         </div>
     </div>
 
-    <!-- BACKUP -->
     <div id="backup" class="panel">
         <h2><i class="fas fa-shield-alt"></i> Backup e Restauração</h2>
         <div class="form-grid">
@@ -303,14 +292,9 @@
 </div>
 </div>
 
-<!-- PWA: Botão flutuante de instalação -->
 <button id="installBtn" class="install-button"><i class="fas fa-download"></i> Instalar App</button>
 
 <script>
-    // ============================================
-    // CÓDIGO COMPLETO DO APP (FUNCIONALIDADES EXISTENTES + OFFLINE + RESPONSIVO)
-    // ============================================
-    
     const DB_NAME = 'CONBCD_Multi_Igrejas_DB';
     const DB_VERSION = 4;
     let db = null;
@@ -323,7 +307,6 @@
     let MASTER_SENHA = 'admin123';
     let editandoId = null;
     
-    // --- Função para mostrar toast ---
     function showToast(msg, tipo = 'info') {
         const toast = document.createElement('div');
         toast.className = 'toast-message';
@@ -333,7 +316,6 @@
         setTimeout(() => toast.remove(), 3000);
     }
     
-    // --- Função para adicionar rodapé de assinaturas ---
     function adicionarRodapeAssinaturas() {
         return `<div class="assinaturas-rodape" style="margin-top: 60px; page-break-inside: avoid; page-break-before: avoid;">
             <div style="margin-top: 50px; padding-top: 20px; border-top: 2px solid #ccc; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
@@ -356,7 +338,6 @@
         </div>`;
     }
     
-    // --- Atualizar status de conexão ---
     function updateConnectionStatus() {
         const statusEl = document.getElementById('connectionStatus');
         if (!statusEl) return;
@@ -373,7 +354,6 @@
     window.addEventListener('online', () => { updateConnectionStatus(); showToast('Conexão restaurada! Os dados serão sincronizados normalmente.', 'success'); });
     window.addEventListener('offline', () => { updateConnectionStatus(); showToast('Você está offline. Os novos cadastros serão salvos no dispositivo e sincronizados quando online.', 'info'); });
     
-    // Inicializar IndexedDB
     function initDatabase() {
         return new Promise((resolve, reject) => {
             const request = indexedDB.open(DB_NAME, DB_VERSION);
@@ -499,7 +479,6 @@
     }
     function hideLoading() { const loading = document.querySelector('.loading-overlay'); if (loading) loading.style.display = 'none'; }
     
-    // Login
     async function fazerLogin(identificador, senha) {
         if (identificador === 'MASTER') {
             if (senha === MASTER_SENHA) {
@@ -552,7 +531,6 @@
         await atualizarInterface();
     }
     
-    // CORREÇÃO: Limpeza completa do formulário incluindo descrição e valor
     function limparFormularioLancamento() {
         document.getElementById('valorTransacao').value = '';
         document.getElementById('descTransacao').value = '';
@@ -717,7 +695,6 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     
-    // Admin: igrejas
     async function adicionarIgrejaAdmin(nome, senha, endereco = '') {
         if (!nome.trim()) return alert('Digite o nome da igreja');
         if (!senha || senha.length < 3) return alert('A senha deve ter pelo menos 3 caracteres');
@@ -799,12 +776,10 @@
             <strong>Totais:</strong> Receitas: R$ ${rec.toFixed(2)} | Despesas: R$ ${desp.toFixed(2)} | Saldo: R$ ${(rec-desp).toFixed(2)}
         </div>`;
         html+=`<div style="margin-top:20px; text-align:right; font-size:12px;">Gerado em ${new Date().toLocaleString()}</div>`;
-        // Adicionar rodapé com assinaturas
         html += adicionarRodapeAssinaturas();
         document.getElementById('conteudoRelatorio').innerHTML = html;
     }
     
-    // Backup completo
     async function exportarBackup() {
         const igrejas = await carregarIgrejas();
         const todasTransacoes = [];
@@ -862,7 +837,6 @@
         });
     }
     
-    // Recarregar dados manuais
     async function recarregarDados() {
         if (!igrejaAtual && !usuarioLogado?.isMaster) { showToast('Nenhuma igreja selecionada.', 'error'); return; }
         if (usuarioLogado?.isMaster) { await atualizarInterface(); showToast('Dados do modo master recarregados.', 'success'); return; }
@@ -875,7 +849,6 @@
         showToast('Informações recarregadas do banco local.', 'success');
     }
     
-    // Importar backup rápido
     function importarBackupRapido() {
         const input = document.createElement('input');
         input.type = 'file';
@@ -884,7 +857,6 @@
         input.click();
     }
     
-    // CORREÇÃO: Relatório Avançado com assinaturas no RODAPÉ e botão imprimir
     function relatorioAvancadoComImpressao() {
         if(!igrejaAtual) return;
         const ano = prompt('Ano:', new Date().getFullYear());
@@ -898,7 +870,7 @@
                                 <th>Receitas</th>
                                 <th>Despesas</th>
                                 <th>Saldo</th>
-                            </tr>
+                             </tr>
                         </thead>
                         <tbody>`;
         let totalR=0,totalD=0;
@@ -918,21 +890,19 @@
                         <td>R$ ${rec.toFixed(2)}</td>
                         <td>R$ ${desp.toFixed(2)}</td>
                         <td style="color:${rec-desp>=0?'green':'red'}">R$ ${(rec-desp).toFixed(2)}</td>
-                    </tr>`;
+                     </tr>`;
         }
         html+=`<tr style="font-weight:bold; background:#f3f4f6;">
                     <td>TOTAL</td>
                     <td>R$ ${totalR.toFixed(2)}</td>
                     <td>R$ ${totalD.toFixed(2)}</td>
                     <td>R$ ${(totalR-totalD).toFixed(2)}</td>
-                </tr>
+                 </tr>
             </tbody>
-        </table>`;
+         </table>`;
         
-        // Adicionar rodapé com assinaturas
         html += adicionarRodapeAssinaturas();
         
-        // Criar modal com botões Fechar e Imprimir
         const modal = document.createElement('div');
         modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:100000;display:flex;align-items:center;justify-content:center';
         modal.innerHTML = `
@@ -949,7 +919,6 @@
         `;
         document.body.appendChild(modal);
         
-        // Função para imprimir o relatório avançado
         document.getElementById('imprimirRelatorioAvancado').onclick = () => {
             const conteudo = document.getElementById('conteudoRelatorioAvancado').innerHTML;
             const win = window.open('', '_blank');
@@ -1019,7 +988,7 @@
         document.getElementById('fecharRelatorioAvancado').onclick = () => modal.remove();
     }
     
-    // CORREÇÃO: Exportar PDF com margens adequadas para mobile
+    // 🟢 CORREÇÃO PRINCIPAL: Exportar PDF com margens ajustadas para mobile
     async function exportarPDFComMargens() {
         const c = document.getElementById('conteudoRelatorio').innerHTML;
         if(!c) {
@@ -1028,13 +997,28 @@
         }
         showLoading('Gerando PDF...');
         try {
+            // Detecta se é dispositivo móvel
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            // Configura margens diferentes para mobile e desktop
+            let marginConfig;
+            if (isMobile) {
+                // Mobile: margem superior reduzida para 0.2 polegadas (resolve o problema de espaçamento no topo)
+                marginConfig = [0.2, 0.5, 0.2, 0.5]; // [topo, direita, inferior, esquerda]
+            } else {
+                // Desktop: mantém as margens originais
+                marginConfig = [0.5, 0.5, 0.5, 0.5];
+            }
+            
             const element = document.createElement('div');
             element.innerHTML = `<div style="padding:20px; margin:0; width:100%;"><h1 style="color:#064e3b;">${igrejaAtual?.nome || 'CONBCD'}</h1>${c}</div>`;
             element.style.margin = '0';
             element.style.padding = '0';
+            element.style.position = 'relative';
+            element.style.top = isMobile ? '0' : 'auto';
             
             const opt = {
-                margin: [0.5, 0.5, 0.5, 0.5],
+                margin: marginConfig,
                 filename: `relatorio_${new Date().toISOString().slice(0,10)}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true, logging: false },
@@ -1049,7 +1033,6 @@
         }
     }
     
-    // Eventos e inicialização
     document.getElementById('loginBtn').onclick = async () => {
         const identificador = document.getElementById('loginIgrejaSelect').value;
         const senha = document.getElementById('loginSenha').value;
@@ -1109,9 +1092,6 @@
         updateConnectionStatus();
     })();
 
-    // ============================================
-    // PWA: Sistema de Instalação Nativa
-    // ============================================
     (function setupPWA() {
         async function generateIcon(size, bgColor = "#064e3b", iconColor = "#ffffff") {
             return new Promise((resolve) => {
@@ -1260,4 +1240,4 @@
     })();
 </script>
 </body>
-    </html>
+            </html>

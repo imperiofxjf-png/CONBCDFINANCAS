@@ -33,11 +33,15 @@
         .user-info { background: rgba(255,255,255,0.15); padding: 8px 12px; border-radius: 15px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
         .user-info button, .user-info span { font-size: 0.8rem; }
         .user-info #connectionStatus, .user-info #recarregarDadosBtn, .user-info #importarBackupRapidoBtn { font-size: 0.75rem; padding: 4px 10px; }
-        .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .dashboard-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 25px; }
         .card-modern { background: white; border-radius: 20px; padding: 18px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); border-left: 5px solid; cursor: pointer; }
         .card-receita { border-left-color: #10b981; }
         .card-despesa { border-left-color: #ef4444; }
         .card-saldo { border-left-color: #3b82f6; }
+        .card-receita-dia { border-left-color: #8b5cf6; }
+        .card-receita-mes { border-left-color: #f59e0b; }
+        .card-despesa-dia { border-left-color: #ec4899; }
+        .card-despesa-mes { border-left-color: #f97316; }
         .card-modern h4 { font-size: 0.75rem; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; }
         .card-modern .valor-grande { font-size: 1.6rem; font-weight: bold; word-break: break-word; }
         .tabs-system { background: white; border-radius: 20px; padding: 5px; margin-bottom: 25px; display: flex; flex-wrap: wrap; gap: 5px; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
@@ -56,7 +60,6 @@
         .btn-secondary { background: #6b7280; }
         .table-responsive { overflow-x: auto; margin-top: 15px; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; min-width: 500px; }
-        /* CORREÇÃO: Títulos das tabelas em PRETO */
         th { 
             background: #f3f4f6; 
             padding: 10px 8px; 
@@ -79,7 +82,6 @@
         .toast-message { position: fixed; bottom: 20px; left: 20px; right: 20px; background: #1f2937; color: white; padding: 10px 16px; border-radius: 40px; z-index: 100000; font-size: 0.8rem; box-shadow: 0 5px 15px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 8px; animation: fadeInOut 3s ease; max-width: 90%; }
         @keyframes fadeInOut { 0% { opacity: 0; transform: translateY(20px); } 10% { opacity: 1; transform: translateY(0); } 90% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(20px); } }
         
-        /* PWA: botão flutuante de instalação */
         .install-button {
             position: fixed;
             bottom: 20px;
@@ -102,7 +104,6 @@
         .install-button:hover { transform: scale(1.05); }
         .install-button i { font-size: 1.1rem; }
         
-        /* Ajustes específicos para telas muito pequenas (celular) */
         @media (max-width: 600px) {
             body { padding: 8px; }
             .header-institucional { padding: 15px; }
@@ -110,7 +111,7 @@
             .logo-area h1 i { font-size: 1.2rem; }
             .user-info { padding: 6px 10px; gap: 6px; }
             .user-info button, .user-info span { font-size: 0.7rem; }
-            .dashboard-cards { gap: 10px; }
+            .dashboard-cards { gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
             .card-modern .valor-grande { font-size: 1.3rem; }
             .tab-btn { padding: 8px 12px; font-size: 0.75rem; }
             .tab-btn i { margin-right: 3px; }
@@ -174,6 +175,22 @@
         <div class="card-modern card-saldo">
             <h4><i class="fas fa-balance-scale"></i> SALDO GERAL</h4>
             <div class="valor-grande" id="saldoTotal">R$ 0,00</div>
+        </div>
+        <div class="card-modern card-receita-dia">
+            <h4><i class="fas fa-calendar-day"></i> RECEITAS DO DIA</h4>
+            <div class="valor-grande" id="totalReceitasDia">R$ 0,00</div>
+        </div>
+        <div class="card-modern card-receita-mes">
+            <h4><i class="fas fa-calendar-alt"></i> RECEITAS DO MÊS</h4>
+            <div class="valor-grande" id="totalReceitasMes">R$ 0,00</div>
+        </div>
+        <div class="card-modern card-despesa-dia">
+            <h4><i class="fas fa-calendar-day"></i> DESPESAS DO DIA</h4>
+            <div class="valor-grande" id="totalDespesasDia">R$ 0,00</div>
+        </div>
+        <div class="card-modern card-despesa-mes">
+            <h4><i class="fas fa-calendar-alt"></i> DESPESAS DO MÊS</h4>
+            <div class="valor-grande" id="totalDespesasMes">R$ 0,00</div>
         </div>
     </div>
 
@@ -308,7 +325,7 @@
 
 <script>
     // ============================================
-    // CÓDIGO COMPLETO DO APP (FUNCIONALIDADES EXISTENTES + OFFLINE + RESPONSIVO)
+    // CÓDIGO COMPLETO DO APP (FUNCIONALIDADES EXISTENTES + OFFLINE + RESPONSIVO + NOVOS TOTAIS)
     // ============================================
     
     const DB_NAME = 'CONBCD_Multi_Igrejas_DB';
@@ -499,6 +516,57 @@
     }
     function hideLoading() { const loading = document.querySelector('.loading-overlay'); if (loading) loading.style.display = 'none'; }
     
+    // --- Função para calcular totais de receitas e despesas do dia e do mês ---
+    function calcularTotaisDiariosMensais() {
+        if (!igrejaAtual || transacoes.length === 0) {
+            document.getElementById('totalReceitasDia').innerHTML = 'R$ 0,00';
+            document.getElementById('totalReceitasMes').innerHTML = 'R$ 0,00';
+            document.getElementById('totalDespesasDia').innerHTML = 'R$ 0,00';
+            document.getElementById('totalDespesasMes').innerHTML = 'R$ 0,00';
+            return;
+        }
+
+        const hoje = new Date();
+        const hojeStr = hoje.toISOString().slice(0, 10);
+        const mesAtual = hoje.getMonth();
+        const anoAtual = hoje.getFullYear();
+
+        let totalReceitasDia = 0;
+        let totalReceitasMes = 0;
+        let totalDespesasDia = 0;
+        let totalDespesasMes = 0;
+
+        transacoes.forEach(t => {
+            const dataTransacao = new Date(t.data);
+            const dataStr = t.data;
+            
+            if (t.tipo === 'receita') {
+                // Receitas do dia
+                if (dataStr === hojeStr) {
+                    totalReceitasDia += t.valor;
+                }
+                // Receitas do mês
+                if (dataTransacao.getMonth() === mesAtual && dataTransacao.getFullYear() === anoAtual) {
+                    totalReceitasMes += t.valor;
+                }
+            } else if (t.tipo === 'despesa') {
+                // Despesas do dia
+                if (dataStr === hojeStr) {
+                    totalDespesasDia += t.valor;
+                }
+                // Despesas do mês
+                if (dataTransacao.getMonth() === mesAtual && dataTransacao.getFullYear() === anoAtual) {
+                    totalDespesasMes += t.valor;
+                }
+            }
+        });
+
+        document.getElementById('totalReceitasDia').innerHTML = `R$ ${totalReceitasDia.toFixed(2)}`;
+        document.getElementById('totalReceitasMes').innerHTML = `R$ ${totalReceitasMes.toFixed(2)}`;
+        document.getElementById('totalDespesasDia').innerHTML = `R$ ${totalDespesasDia.toFixed(2)}`;
+        document.getElementById('totalDespesasMes').innerHTML = `R$ ${totalDespesasMes.toFixed(2)}`;
+    }
+
     // Login
     async function fazerLogin(identificador, senha) {
         if (identificador === 'MASTER') {
@@ -552,7 +620,6 @@
         await atualizarInterface();
     }
     
-    // CORREÇÃO: Limpeza completa do formulário incluindo descrição e valor
     function limparFormularioLancamento() {
         document.getElementById('valorTransacao').value = '';
         document.getElementById('descTransacao').value = '';
@@ -619,6 +686,10 @@
             document.getElementById('totalReceitas').innerHTML = 'R$ 0,00';
             document.getElementById('totalDespesas').innerHTML = 'R$ 0,00';
             document.getElementById('saldoTotal').innerHTML = 'R$ 0,00';
+            document.getElementById('totalReceitasDia').innerHTML = 'R$ 0,00';
+            document.getElementById('totalReceitasMes').innerHTML = 'R$ 0,00';
+            document.getElementById('totalDespesasDia').innerHTML = 'R$ 0,00';
+            document.getElementById('totalDespesasMes').innerHTML = 'R$ 0,00';
             document.getElementById('categoriaSelect').innerHTML = '<option>Nenhuma igreja selecionada</option>';
             document.querySelector('#tabelaTransacoes tbody').innerHTML = '<tr><td colspan="6">Modo Administrador - Selecione uma igreja para ver dados</td></tr>';
             document.getElementById('listaCategorias').innerHTML = '<p>Modo Administrador</p>';
@@ -634,6 +705,9 @@
         document.getElementById('totalReceitas').innerHTML = `R$ ${totalRec.toFixed(2)}`;
         document.getElementById('totalDespesas').innerHTML = `R$ ${totalDesp.toFixed(2)}`;
         document.getElementById('saldoTotal').innerHTML = `R$ ${(totalRec - totalDesp).toFixed(2)}`;
+        
+        // Calcular totais de receitas e despesas do dia e do mês
+        calcularTotaisDiariosMensais();
         
         const catSelect = document.getElementById('categoriaSelect');
         if (catSelect) {
@@ -799,7 +873,6 @@
             <strong>Totais:</strong> Receitas: R$ ${rec.toFixed(2)} | Despesas: R$ ${desp.toFixed(2)} | Saldo: R$ ${(rec-desp).toFixed(2)}
         </div>`;
         html+=`<div style="margin-top:20px; text-align:right; font-size:12px;">Gerado em ${new Date().toLocaleString()}</div>`;
-        // Adicionar rodapé com assinaturas
         html += adicionarRodapeAssinaturas();
         document.getElementById('conteudoRelatorio').innerHTML = html;
     }
@@ -884,7 +957,7 @@
         input.click();
     }
     
-    // CORREÇÃO: Relatório Avançado com assinaturas no RODAPÉ e botão imprimir
+    // Relatório Avançado com assinaturas no RODAPÉ e botão imprimir
     function relatorioAvancadoComImpressao() {
         if(!igrejaAtual) return;
         const ano = prompt('Ano:', new Date().getFullYear());
@@ -929,10 +1002,8 @@
             </tbody>
         </table>`;
         
-        // Adicionar rodapé com assinaturas
         html += adicionarRodapeAssinaturas();
         
-        // Criar modal com botões Fechar e Imprimir
         const modal = document.createElement('div');
         modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:100000;display:flex;align-items:center;justify-content:center';
         modal.innerHTML = `
@@ -949,7 +1020,6 @@
         `;
         document.body.appendChild(modal);
         
-        // Função para imprimir o relatório avançado
         document.getElementById('imprimirRelatorioAvancado').onclick = () => {
             const conteudo = document.getElementById('conteudoRelatorioAvancado').innerHTML;
             const win = window.open('', '_blank');
@@ -1019,7 +1089,7 @@
         document.getElementById('fecharRelatorioAvancado').onclick = () => modal.remove();
     }
     
-    // CORREÇÃO: Exportar PDF com margens adequadas para mobile
+    // Exportar PDF com margens adequadas
     async function exportarPDFComMargens() {
         const c = document.getElementById('conteudoRelatorio').innerHTML;
         if(!c) {

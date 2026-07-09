@@ -38,6 +38,8 @@
         .card-saldo { border-left-color: #3b82f6; }
         .card-receita-mes { border-left-color: #f59e0b; }
         .card-despesa-mes { border-left-color: #f97316; }
+        .card-receita-dia { border-left-color: #06b6d4; }
+        .card-despesa-dia { border-left-color: #ec4899; }
         .card-contas-pagar { border-left-color: #dc2626; }
         .card-contas-receber { border-left-color: #10b981; }
         .card-modern h4 { font-size: 0.75rem; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; }
@@ -233,6 +235,17 @@
             <h4><i class="fas fa-balance-scale"></i> SALDO GERAL</h4>
             <div class="valor-grande" id="saldoTotal">R$ 0,00</div>
         </div>
+        
+        <!-- NOVOS CARDS: RECEITAS DO DIA E DESPESAS DO DIA -->
+        <div class="card-modern card-receita-dia">
+            <h4><i class="fas fa-sun"></i> RECEITAS DO DIA</h4>
+            <div class="valor-grande" id="totalReceitasDia">R$ 0,00</div>
+        </div>
+        <div class="card-modern card-despesa-dia">
+            <h4><i class="fas fa-moon"></i> DESPESAS DO DIA</h4>
+            <div class="valor-grande" id="totalDespesasDia">R$ 0,00</div>
+        </div>
+        
         <div class="card-modern card-receita-mes">
             <h4><i class="fas fa-calendar-alt"></i> RECEITAS DO MÊS</h4>
             <div class="valor-grande" id="totalReceitasMes">R$ 0,00</div>
@@ -451,7 +464,7 @@
 
 <script>
     // ============================================
-    // CÓDIGO COMPLETO DO APP (FUNCIONALIDADES EXISTENTES + OFFLINE + RESPONSIVO + NOVOS TOTAIS + CONTAS + PESQUISA)
+    // CÓDIGO COMPLETO DO APP (FUNCIONALIDADES EXISTENTES + OFFLINE + RESPONSIVO + TOTAIS DIA/MÊS + CONTAS + PESQUISA)
     // ============================================
     
     const DB_NAME = 'CONBCD_Multi_Igrejas_DB';
@@ -653,6 +666,42 @@
     }
     function hideLoading() { const loading = document.querySelector('.loading-overlay'); if (loading) loading.style.display = 'none'; }
     
+    // --- Função para calcular totais do dia (CORRIGIDA) ---
+    function calcularTotaisDia() {
+        // Verifica se há igreja selecionada e transações
+        if (!igrejaAtual || transacoes.length === 0) {
+            document.getElementById('totalReceitasDia').innerHTML = 'R$ 0,00';
+            document.getElementById('totalDespesasDia').innerHTML = 'R$ 0,00';
+            return;
+        }
+
+        // Obtém a data atual
+        const hoje = new Date();
+        const diaAtual = hoje.getDate().toString().padStart(2, '0');
+        const mesAtual = (hoje.getMonth() + 1).toString().padStart(2, '0');
+        const anoAtual = hoje.getFullYear();
+        
+        // Formato da data para comparação: YYYY-MM-DD
+        const dataHojeStr = `${anoAtual}-${mesAtual}-${diaAtual}`;
+
+        let totalReceitasDia = 0;
+        let totalDespesasDia = 0;
+
+        transacoes.forEach(t => {
+            // A data da transação já está no formato YYYY-MM-DD
+            if (t.data === dataHojeStr) {
+                if (t.tipo === 'receita') {
+                    totalReceitasDia += t.valor;
+                } else if (t.tipo === 'despesa') {
+                    totalDespesasDia += t.valor;
+                }
+            }
+        });
+
+        document.getElementById('totalReceitasDia').innerHTML = `R$ ${totalReceitasDia.toFixed(2)}`;
+        document.getElementById('totalDespesasDia').innerHTML = `R$ ${totalDespesasDia.toFixed(2)}`;
+    }
+
     // --- Função para calcular totais de receitas e despesas do mês ---
     function calcularTotaisMensais() {
         if (!igrejaAtual || transacoes.length === 0) {
@@ -662,21 +711,23 @@
         }
 
         const hoje = new Date();
-        const mesAtual = hoje.getMonth();
+        const mesAtual = (hoje.getMonth() + 1).toString().padStart(2, '0');
         const anoAtual = hoje.getFullYear();
+        
+        // Formato para comparação: YYYY-MM
+        const mesAnoStr = `${anoAtual}-${mesAtual}`;
 
         let totalReceitasMes = 0;
         let totalDespesasMes = 0;
 
         transacoes.forEach(t => {
-            const dataTransacao = new Date(t.data);
+            // Extrai apenas ano-mês da data da transação
+            const dataTransacao = t.data.substring(0, 7); // YYYY-MM
             
-            if (t.tipo === 'receita') {
-                if (dataTransacao.getMonth() === mesAtual && dataTransacao.getFullYear() === anoAtual) {
+            if (dataTransacao === mesAnoStr) {
+                if (t.tipo === 'receita') {
                     totalReceitasMes += t.valor;
-                }
-            } else if (t.tipo === 'despesa') {
-                if (dataTransacao.getMonth() === mesAtual && dataTransacao.getFullYear() === anoAtual) {
+                } else if (t.tipo === 'despesa') {
                     totalDespesasMes += t.valor;
                 }
             }
@@ -1024,6 +1075,8 @@
             document.getElementById('totalReceitas').innerHTML = 'R$ 0,00';
             document.getElementById('totalDespesas').innerHTML = 'R$ 0,00';
             document.getElementById('saldoTotal').innerHTML = 'R$ 0,00';
+            document.getElementById('totalReceitasDia').innerHTML = 'R$ 0,00';
+            document.getElementById('totalDespesasDia').innerHTML = 'R$ 0,00';
             document.getElementById('totalReceitasMes').innerHTML = 'R$ 0,00';
             document.getElementById('totalDespesasMes').innerHTML = 'R$ 0,00';
             document.getElementById('totalContasPagar').innerHTML = 'R$ 0,00';
@@ -1047,6 +1100,8 @@
         document.getElementById('totalDespesas').innerHTML = `R$ ${totalDesp.toFixed(2)}`;
         document.getElementById('saldoTotal').innerHTML = `R$ ${(totalRec - totalDesp).toFixed(2)}`;
         
+        // Atualiza todos os totais
+        calcularTotaisDia();
         calcularTotaisMensais();
         calcularTotaisContas();
         gerarAlertasVencimento();
@@ -1795,4 +1850,4 @@
     })();
 </script>
 </body>
-    </html>
+</html>

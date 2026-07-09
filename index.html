@@ -36,9 +36,7 @@
         .card-receita { border-left-color: #10b981; }
         .card-despesa { border-left-color: #ef4444; }
         .card-saldo { border-left-color: #3b82f6; }
-        .card-receita-dia { border-left-color: #8b5cf6; }
         .card-receita-mes { border-left-color: #f59e0b; }
-        .card-despesa-dia { border-left-color: #ec4899; }
         .card-despesa-mes { border-left-color: #f97316; }
         .card-contas-pagar { border-left-color: #dc2626; }
         .card-contas-receber { border-left-color: #10b981; }
@@ -235,17 +233,9 @@
             <h4><i class="fas fa-balance-scale"></i> SALDO GERAL</h4>
             <div class="valor-grande" id="saldoTotal">R$ 0,00</div>
         </div>
-        <div class="card-modern card-receita-dia">
-            <h4><i class="fas fa-calendar-day"></i> RECEITAS DO DIA</h4>
-            <div class="valor-grande" id="totalReceitasDia">R$ 0,00</div>
-        </div>
         <div class="card-modern card-receita-mes">
             <h4><i class="fas fa-calendar-alt"></i> RECEITAS DO MÊS</h4>
             <div class="valor-grande" id="totalReceitasMes">R$ 0,00</div>
-        </div>
-        <div class="card-modern card-despesa-dia">
-            <h4><i class="fas fa-calendar-day"></i> DESPESAS DO DIA</h4>
-            <div class="valor-grande" id="totalDespesasDia">R$ 0,00</div>
         </div>
         <div class="card-modern card-despesa-mes">
             <h4><i class="fas fa-calendar-alt"></i> DESPESAS DO MÊS</h4>
@@ -663,50 +653,36 @@
     }
     function hideLoading() { const loading = document.querySelector('.loading-overlay'); if (loading) loading.style.display = 'none'; }
     
-    // --- Função para calcular totais de receitas e despesas do dia e do mês ---
-    function calcularTotaisDiariosMensais() {
+    // --- Função para calcular totais de receitas e despesas do mês ---
+    function calcularTotaisMensais() {
         if (!igrejaAtual || transacoes.length === 0) {
-            document.getElementById('totalReceitasDia').innerHTML = 'R$ 0,00';
             document.getElementById('totalReceitasMes').innerHTML = 'R$ 0,00';
-            document.getElementById('totalDespesasDia').innerHTML = 'R$ 0,00';
             document.getElementById('totalDespesasMes').innerHTML = 'R$ 0,00';
             return;
         }
 
         const hoje = new Date();
-        const hojeStr = hoje.toISOString().slice(0, 10);
         const mesAtual = hoje.getMonth();
         const anoAtual = hoje.getFullYear();
 
-        let totalReceitasDia = 0;
         let totalReceitasMes = 0;
-        let totalDespesasDia = 0;
         let totalDespesasMes = 0;
 
         transacoes.forEach(t => {
             const dataTransacao = new Date(t.data);
-            const dataStr = t.data;
             
             if (t.tipo === 'receita') {
-                if (dataStr === hojeStr) {
-                    totalReceitasDia += t.valor;
-                }
                 if (dataTransacao.getMonth() === mesAtual && dataTransacao.getFullYear() === anoAtual) {
                     totalReceitasMes += t.valor;
                 }
             } else if (t.tipo === 'despesa') {
-                if (dataStr === hojeStr) {
-                    totalDespesasDia += t.valor;
-                }
                 if (dataTransacao.getMonth() === mesAtual && dataTransacao.getFullYear() === anoAtual) {
                     totalDespesasMes += t.valor;
                 }
             }
         });
 
-        document.getElementById('totalReceitasDia').innerHTML = `R$ ${totalReceitasDia.toFixed(2)}`;
         document.getElementById('totalReceitasMes').innerHTML = `R$ ${totalReceitasMes.toFixed(2)}`;
-        document.getElementById('totalDespesasDia').innerHTML = `R$ ${totalDespesasDia.toFixed(2)}`;
         document.getElementById('totalDespesasMes').innerHTML = `R$ ${totalDespesasMes.toFixed(2)}`;
     }
 
@@ -1048,9 +1024,7 @@
             document.getElementById('totalReceitas').innerHTML = 'R$ 0,00';
             document.getElementById('totalDespesas').innerHTML = 'R$ 0,00';
             document.getElementById('saldoTotal').innerHTML = 'R$ 0,00';
-            document.getElementById('totalReceitasDia').innerHTML = 'R$ 0,00';
             document.getElementById('totalReceitasMes').innerHTML = 'R$ 0,00';
-            document.getElementById('totalDespesasDia').innerHTML = 'R$ 0,00';
             document.getElementById('totalDespesasMes').innerHTML = 'R$ 0,00';
             document.getElementById('totalContasPagar').innerHTML = 'R$ 0,00';
             document.getElementById('totalContasReceber').innerHTML = 'R$ 0,00';
@@ -1073,7 +1047,7 @@
         document.getElementById('totalDespesas').innerHTML = `R$ ${totalDesp.toFixed(2)}`;
         document.getElementById('saldoTotal').innerHTML = `R$ ${(totalRec - totalDesp).toFixed(2)}`;
         
-        calcularTotaisDiariosMensais();
+        calcularTotaisMensais();
         calcularTotaisContas();
         gerarAlertasVencimento();
         

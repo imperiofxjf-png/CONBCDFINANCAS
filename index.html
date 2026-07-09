@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>CONBCD FINANÇAS | Multi-Igrejas com Login Master (Versão Aprimorada)</title>
-    <!-- PWA: manifest será gerado dinamicamente -->
     <link rel="manifest" id="dynamic-manifest">
-    <!-- PWA: ícone para iOS -->
     <link rel="apple-touch-icon" id="apple-touch-icon">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -42,6 +40,8 @@
         .card-receita-mes { border-left-color: #f59e0b; }
         .card-despesa-dia { border-left-color: #ec4899; }
         .card-despesa-mes { border-left-color: #f97316; }
+        .card-contas-pagar { border-left-color: #dc2626; }
+        .card-contas-receber { border-left-color: #10b981; }
         .card-modern h4 { font-size: 0.75rem; text-transform: uppercase; color: #6b7280; margin-bottom: 8px; }
         .card-modern .valor-grande { font-size: 1.6rem; font-weight: bold; word-break: break-word; }
         .tabs-system { background: white; border-radius: 20px; padding: 5px; margin-bottom: 25px; display: flex; flex-wrap: wrap; gap: 5px; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
@@ -58,6 +58,8 @@
         button:hover { transform: translateY(-2px); }
         .btn-danger { background: #dc2626; }
         .btn-secondary { background: #6b7280; }
+        .btn-warning { background: #f59e0b; }
+        .btn-info { background: #3b82f6; }
         .table-responsive { overflow-x: auto; margin-top: 15px; -webkit-overflow-scrolling: touch; }
         table { width: 100%; border-collapse: collapse; min-width: 500px; }
         th { 
@@ -70,6 +72,13 @@
         }
         td { padding: 8px; border-bottom: 1px solid #e5e7eb; vertical-align: middle; font-size: 0.8rem; }
         .badge { padding: 3px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; }
+        .badge-vencido { background: #dc2626; color: white; }
+        .badge-hoje { background: #f59e0b; color: white; }
+        .badge-em-dia { background: #10b981; color: white; }
+        .badge-receita { background: #10b981; color: white; }
+        .badge-despesa { background: #ef4444; color: white; }
+        .badge-pagar { background: #dc2626; color: white; }
+        .badge-receber { background: #10b981; color: white; }
         .charts-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin: 20px 0; }
         .chart-box { background: #f9fafb; padding: 15px; border-radius: 20px; }
         .categoria-item, .forma-item { display: inline-flex; align-items: center; gap: 8px; background: #eef2ff; padding: 5px 12px; border-radius: 40px; margin: 4px; font-size: 0.8rem; }
@@ -103,6 +112,54 @@
         }
         .install-button:hover { transform: scale(1.05); }
         .install-button i { font-size: 1.1rem; }
+
+        /* Estilos para a pesquisa */
+        .search-box {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 15px;
+            align-items: center;
+        }
+        .search-box input, .search-box select {
+            padding: 8px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            flex: 1;
+            min-width: 150px;
+        }
+        .search-box button {
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            background: #047857;
+            color: white;
+            font-size: 0.85rem;
+        }
+        .search-box .btn-clear { background: #6b7280; }
+        
+        /* Alertas de vencimento */
+        .alerta-vencimento {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        .alerta-vencimento.vencido {
+            background: #fee2e2;
+            border-left-color: #dc2626;
+        }
+        .alerta-vencimento.hoje {
+            background: #fef3c7;
+            border-left-color: #f59e0b;
+        }
         
         @media (max-width: 600px) {
             body { padding: 8px; }
@@ -123,6 +180,8 @@
             .chart-box { padding: 10px; }
             .categoria-item, .forma-item { font-size: 0.7rem; padding: 3px 10px; }
             .status-online, .status-offline { font-size: 0.7rem; padding: 2px 8px; }
+            .search-box { flex-direction: column; }
+            .search-box input, .search-box select { width: 100%; }
         }
     </style>
 </head>
@@ -192,11 +251,20 @@
             <h4><i class="fas fa-calendar-alt"></i> DESPESAS DO MÊS</h4>
             <div class="valor-grande" id="totalDespesasMes">R$ 0,00</div>
         </div>
+        <div class="card-modern card-contas-pagar">
+            <h4><i class="fas fa-file-invoice"></i> CONTAS A PAGAR</h4>
+            <div class="valor-grande" id="totalContasPagar">R$ 0,00</div>
+        </div>
+        <div class="card-modern card-contas-receber">
+            <h4><i class="fas fa-file-invoice-dollar"></i> CONTAS A RECEBER</h4>
+            <div class="valor-grande" id="totalContasReceber">R$ 0,00</div>
+        </div>
     </div>
 
     <div class="tabs-system no-print" id="tabContainer">
         <button class="tab-btn active" data-tab="dashboard"><i class="fas fa-chart-pie"></i> Dashboard</button>
         <button class="tab-btn" data-tab="lancamentos"><i class="fas fa-plus-circle"></i> Lançamentos</button>
+        <button class="tab-btn" data-tab="contas"><i class="fas fa-file-invoice"></i> Contas</button>
         <button class="tab-btn" data-tab="categorias"><i class="fas fa-tags"></i> Categorias</button>
         <button class="tab-btn" data-tab="relatorios"><i class="fas fa-file-alt"></i> Relatórios</button>
         <button class="tab-btn" data-tab="igrejas" id="tabIgrejasBtn"><i class="fas fa-church"></i> Admin: Igrejas</button>
@@ -206,6 +274,8 @@
     <!-- DASHBOARD -->
     <div id="dashboard" class="panel active-panel">
         <h2><i class="fas fa-chart-pie"></i> Dashboard Financeiro</h2>
+        <!-- Alertas de vencimento -->
+        <div id="alertasContainer" class="no-print"></div>
         <div class="charts-row">
             <div class="chart-box">
                 <h4>Comparativo Mensal</h4>
@@ -243,6 +313,72 @@
         <div class="table-responsive">
             <table id="tabelaTransacoes">
                 <thead><tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th><th>Ações</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- CONTAS A PAGAR E RECEBER -->
+    <div id="contas" class="panel">
+        <h2><i class="fas fa-file-invoice"></i> Contas a Pagar / Receber</h2>
+        
+        <!-- Formulário de Contas -->
+        <div class="form-grid">
+            <div class="input-field"><label>Tipo de Conta</label>
+                <select id="tipoConta">
+                    <option value="pagar">📉 Conta a Pagar</option>
+                    <option value="receber">💰 Conta a Receber</option>
+                </select>
+            </div>
+            <div class="input-field"><label>Discriminação</label>
+                <input type="text" id="discriminacaoConta" placeholder="Ex: Aluguel, Salário, Venda...">
+            </div>
+            <div class="input-field"><label>Valor (R$)</label>
+                <input type="number" id="valorConta" step="0.01">
+            </div>
+            <div class="input-field"><label>Data de Emissão</label>
+                <input type="date" id="dataEmissaoConta">
+            </div>
+            <div class="input-field"><label>Data de Vencimento</label>
+                <input type="date" id="dataVencimentoConta">
+            </div>
+            <div class="input-field"><label>Total de Parcelas</label>
+                <input type="number" id="totalParcelasConta" value="1" min="1" step="1">
+            </div>
+            <div class="input-field"><label>Categoria</label>
+                <select id="categoriaContaSelect"></select>
+            </div>
+            <div><button id="salvarConta"><i class="fas fa-save"></i> Salvar Conta</button> <button id="cancelarEdicaoConta" style="display:none; background:#6b7280;"><i class="fas fa-times"></i> Cancelar</button></div>
+        </div>
+
+        <!-- Pesquisa -->
+        <div class="search-box">
+            <input type="text" id="pesquisaConta" placeholder="🔍 Pesquisar por discriminação...">
+            <input type="date" id="pesquisaDataConta" placeholder="Data">
+            <select id="pesquisaCategoriaConta">
+                <option value="">Todas as categorias</option>
+            </select>
+            <button id="btnPesquisarConta"><i class="fas fa-search"></i> Pesquisar</button>
+            <button id="btnLimparPesquisaConta" class="btn-clear"><i class="fas fa-times"></i> Limpar</button>
+        </div>
+
+        <!-- Lista de Contas -->
+        <div id="alertasContasContainer" class="no-print"></div>
+        <h3>Lista de Contas</h3>
+        <div class="table-responsive">
+            <table id="tabelaContas">
+                <thead>
+                    <tr>
+                        <th>Tipo</th>
+                        <th>Discriminação</th>
+                        <th>Valor</th>
+                        <th>Emissão</th>
+                        <th>Vencimento</th>
+                        <th>Parcelas</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
                 <tbody></tbody>
             </table>
         </div>
@@ -325,20 +461,22 @@
 
 <script>
     // ============================================
-    // CÓDIGO COMPLETO DO APP (FUNCIONALIDADES EXISTENTES + OFFLINE + RESPONSIVO + NOVOS TOTAIS)
+    // CÓDIGO COMPLETO DO APP (FUNCIONALIDADES EXISTENTES + OFFLINE + RESPONSIVO + NOVOS TOTAIS + CONTAS + PESQUISA)
     // ============================================
     
     const DB_NAME = 'CONBCD_Multi_Igrejas_DB';
-    const DB_VERSION = 4;
+    const DB_VERSION = 5;
     let db = null;
     let todasIgrejas = [];
     let igrejaAtual = null;
     let transacoes = [];
     let categorias = [];
     let formasPagamento = [];
+    let contas = [];
     let usuarioLogado = null;
     let MASTER_SENHA = 'admin123';
     let editandoId = null;
+    let editandoContaId = null;
     
     // --- Função para mostrar toast ---
     function showToast(msg, tipo = 'info') {
@@ -416,6 +554,11 @@
                 if (!db.objectStoreNames.contains('config')) {
                     db.createObjectStore('config', { keyPath: 'chave' });
                 }
+                // Nova store para contas
+                if (!db.objectStoreNames.contains('contas')) {
+                    const contasStore = db.createObjectStore('contas', { keyPath: 'id' });
+                    contasStore.createIndex('igrejaId', 'igrejaId');
+                }
             };
         });
     }
@@ -463,6 +606,10 @@
     async function carregarCategorias(igrejaId) { const items = await carregarItens('categorias', igrejaId, x => ({ nome: x.nome, tipo: x.tipo, id: x.id })); return items; }
     async function salvarFormasPagamento(igrejaId, lista) { return salvarItens('formasPagamento', igrejaId, lista, (f, i) => ({ nome: f.nome, id: f.id || `${igrejaId}_fp_${Date.now()}_${i}` })); }
     async function carregarFormasPagamento(igrejaId) { const items = await carregarItens('formasPagamento', igrejaId, x => ({ nome: x.nome, id: x.id })); return items.map(f => f.nome); }
+    
+    // Funções para contas
+    async function salvarContas(igrejaId, lista) { return salvarItens('contas', igrejaId, lista, (c, i) => ({ ...c, id: c.id || `${igrejaId}_conta_${Date.now()}_${i}` })); }
+    async function carregarContas(igrejaId) { return carregarItens('contas', igrejaId, x => x); }
     
     async function salvarIgrejas(igrejas) {
         return new Promise((resolve, reject) => {
@@ -541,20 +688,16 @@
             const dataStr = t.data;
             
             if (t.tipo === 'receita') {
-                // Receitas do dia
                 if (dataStr === hojeStr) {
                     totalReceitasDia += t.valor;
                 }
-                // Receitas do mês
                 if (dataTransacao.getMonth() === mesAtual && dataTransacao.getFullYear() === anoAtual) {
                     totalReceitasMes += t.valor;
                 }
             } else if (t.tipo === 'despesa') {
-                // Despesas do dia
                 if (dataStr === hojeStr) {
                     totalDespesasDia += t.valor;
                 }
-                // Despesas do mês
                 if (dataTransacao.getMonth() === mesAtual && dataTransacao.getFullYear() === anoAtual) {
                     totalDespesasMes += t.valor;
                 }
@@ -567,7 +710,193 @@
         document.getElementById('totalDespesasMes').innerHTML = `R$ ${totalDespesasMes.toFixed(2)}`;
     }
 
-    // Login
+    // --- Função para calcular totais de contas a pagar e receber ---
+    function calcularTotaisContas() {
+        if (!igrejaAtual || contas.length === 0) {
+            document.getElementById('totalContasPagar').innerHTML = 'R$ 0,00';
+            document.getElementById('totalContasReceber').innerHTML = 'R$ 0,00';
+            return;
+        }
+
+        let totalPagar = 0;
+        let totalReceber = 0;
+
+        contas.forEach(c => {
+            if (c.tipo === 'pagar') totalPagar += c.valor;
+            else if (c.tipo === 'receber') totalReceber += c.valor;
+        });
+
+        document.getElementById('totalContasPagar').innerHTML = `R$ ${totalPagar.toFixed(2)}`;
+        document.getElementById('totalContasReceber').innerHTML = `R$ ${totalReceber.toFixed(2)}`;
+    }
+
+    // --- Função para verificar vencimentos e gerar alertas ---
+    function gerarAlertasVencimento() {
+        const container = document.getElementById('alertasContainer');
+        const containerContas = document.getElementById('alertasContasContainer');
+        if (!container) return;
+
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        const hojeStr = hoje.toISOString().slice(0, 10);
+        
+        let alertas = [];
+        let alertasContas = [];
+
+        // Alertas de contas
+        contas.forEach(c => {
+            const vencimento = new Date(c.vencimento);
+            vencimento.setHours(0, 0, 0, 0);
+            const diffDias = Math.floor((vencimento - hoje) / (1000 * 60 * 60 * 24));
+            
+            if (diffDias < 0) {
+                // Vencida
+                alertasContas.push({
+                    ...c,
+                    status: 'vencido',
+                    mensagem: `🔴 Conta ${c.tipo === 'pagar' ? 'a Pagar' : 'a Receber'} "${c.discriminacao}" venceu há ${Math.abs(diffDias)} dia(s)! Valor: R$ ${c.valor.toFixed(2)}`
+                });
+            } else if (diffDias === 0) {
+                // Vence hoje
+                alertasContas.push({
+                    ...c,
+                    status: 'hoje',
+                    mensagem: `🟡 Conta ${c.tipo === 'pagar' ? 'a Pagar' : 'a Receber'} "${c.discriminacao}" vence HOJE! Valor: R$ ${c.valor.toFixed(2)}`
+                });
+            } else if (diffDias <= 3) {
+                // Vence nos próximos 3 dias
+                alertasContas.push({
+                    ...c,
+                    status: 'proximo',
+                    mensagem: `ℹ️ Conta ${c.tipo === 'pagar' ? 'a Pagar' : 'a Receber'} "${c.discriminacao}" vence em ${diffDias} dia(s). Valor: R$ ${c.valor.toFixed(2)}`
+                });
+            }
+        });
+
+        // Mostrar alertas no dashboard
+        if (alertasContas.length > 0) {
+            let html = '<div style="margin-bottom: 15px;">';
+            alertasContas.forEach(a => {
+                const classe = a.status === 'vencido' ? 'vencido' : (a.status === 'hoje' ? 'hoje' : '');
+                html += `<div class="alerta-vencimento ${classe}">${a.mensagem}</div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = '<div class="alerta-vencimento" style="background:#f0fdf4; border-left-color:#10b981;">✅ Nenhuma conta próxima do vencimento!</div>';
+        }
+
+        // Mostrar alertas na aba de contas
+        if (containerContas) {
+            if (alertasContas.length > 0) {
+                let html = '<div style="margin-bottom: 15px;">';
+                alertasContas.forEach(a => {
+                    const classe = a.status === 'vencido' ? 'vencido' : (a.status === 'hoje' ? 'hoje' : '');
+                    html += `<div class="alerta-vencimento ${classe}">${a.mensagem}</div>`;
+                });
+                html += '</div>';
+                containerContas.innerHTML = html;
+            } else {
+                containerContas.innerHTML = '<div class="alerta-vencimento" style="background:#f0fdf4; border-left-color:#10b981;">✅ Nenhuma conta próxima do vencimento!</div>';
+            }
+        }
+    }
+
+    // --- Função para pesquisar contas ---
+    function pesquisarContas() {
+        const termo = document.getElementById('pesquisaConta').value.toLowerCase();
+        const data = document.getElementById('pesquisaDataConta').value;
+        const categoria = document.getElementById('pesquisaCategoriaConta').value;
+
+        let filtradas = [...contas];
+
+        if (termo) {
+            filtradas = filtradas.filter(c => c.discriminacao.toLowerCase().includes(termo));
+        }
+
+        if (data) {
+            filtradas = filtradas.filter(c => c.vencimento === data || c.emissao === data);
+        }
+
+        if (categoria) {
+            filtradas = filtradas.filter(c => c.categoria === categoria);
+        }
+
+        renderizarTabelaContas(filtradas);
+    }
+
+    // --- Função para renderizar tabela de contas ---
+    function renderizarTabelaContas(lista) {
+        const tbody = document.querySelector('#tabelaContas tbody');
+        if (!tbody) return;
+
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+
+        tbody.innerHTML = '';
+        (lista || contas).forEach(c => {
+            const row = tbody.insertRow();
+            
+            // Tipo
+            row.insertCell(0).innerHTML = `<span class="badge ${c.tipo === 'pagar' ? 'badge-pagar' : 'badge-receber'}">${c.tipo === 'pagar' ? '📉 Pagar' : '💰 Receber'}</span>`;
+            
+            // Discriminação
+            row.insertCell(1).textContent = c.discriminacao;
+            
+            // Valor
+            row.insertCell(2).textContent = `R$ ${c.valor.toFixed(2)}`;
+            
+            // Emissão
+            row.insertCell(3).textContent = c.emissao;
+            
+            // Vencimento
+            row.insertCell(4).textContent = c.vencimento;
+            
+            // Parcelas
+            row.insertCell(5).textContent = c.parcelas || 1;
+            
+            // Status
+            const vencimento = new Date(c.vencimento);
+            vencimento.setHours(0, 0, 0, 0);
+            const diffDias = Math.floor((vencimento - hoje) / (1000 * 60 * 60 * 24));
+            let statusHtml = '';
+            if (diffDias < 0) {
+                statusHtml = `<span class="badge badge-vencido">🔴 Vencida há ${Math.abs(diffDias)}d</span>`;
+            } else if (diffDias === 0) {
+                statusHtml = `<span class="badge badge-hoje">🟡 Vence hoje</span>`;
+            } else if (diffDias <= 3) {
+                statusHtml = `<span class="badge badge-hoje">🟡 Em ${diffDias}d</span>`;
+            } else {
+                statusHtml = `<span class="badge badge-em-dia">✅ Em dia</span>`;
+            }
+            row.insertCell(6).innerHTML = statusHtml;
+            
+            // Ações
+            const acoes = row.insertCell(7);
+            const btnEdit = document.createElement('button');
+            btnEdit.innerHTML = '<i class="fas fa-edit"></i>';
+            btnEdit.className = 'edit-btn small-btn';
+            btnEdit.onclick = () => editarConta(c);
+            
+            const btnDel = document.createElement('button');
+            btnDel.innerHTML = '<i class="fas fa-trash"></i>';
+            btnDel.style.background = '#dc2626';
+            btnDel.className = 'small-btn';
+            btnDel.onclick = async () => { 
+                if(confirm('Excluir esta conta?')) { 
+                    contas = contas.filter(x => x.id !== c.id); 
+                    await salvarContas(igrejaAtual.id, contas); 
+                    await atualizarInterface(); 
+                    showToast('Conta excluída!', 'success'); 
+                } 
+            };
+            
+            acoes.appendChild(btnEdit);
+            acoes.appendChild(btnDel);
+        });
+    }
+
+    // --- Login ---
     async function fazerLogin(identificador, senha) {
         if (identificador === 'MASTER') {
             if (senha === MASTER_SENHA) {
@@ -598,6 +927,10 @@
         if (formas.length === 0) formas = ["Dinheiro", "PIX", "Cartão", "Transferência"];
         formasPagamento = formas;
         await salvarFormasPagamento(igreja.id, formasPagamento.map(n => ({ nome: n })));
+        
+        // Carregar contas
+        contas = await carregarContas(igreja.id);
+        
         return { sucesso: true, isMaster: false, igreja: igreja };
     }
     
@@ -635,6 +968,35 @@
         document.getElementById('formTitle').innerHTML = '<i class="fas fa-plus-circle"></i> Novo Lançamento';
         document.getElementById('salvarTransacao').innerHTML = '<i class="fas fa-save"></i> Salvar';
         document.getElementById('cancelarEdicao').style.display = 'none';
+    }
+
+    function limparFormularioConta() {
+        document.getElementById('discriminacaoConta').value = '';
+        document.getElementById('valorConta').value = '';
+        document.getElementById('dataEmissaoConta').value = '';
+        document.getElementById('dataVencimentoConta').value = '';
+        document.getElementById('totalParcelasConta').value = '1';
+        document.getElementById('tipoConta').value = 'pagar';
+        if (document.getElementById('categoriaContaSelect').options.length > 0) {
+            document.getElementById('categoriaContaSelect').selectedIndex = 0;
+        }
+        editandoContaId = null;
+        document.getElementById('salvarConta').innerHTML = '<i class="fas fa-save"></i> Salvar Conta';
+        document.getElementById('cancelarEdicaoConta').style.display = 'none';
+    }
+
+    function editarConta(conta) {
+        editandoContaId = conta.id;
+        document.getElementById('tipoConta').value = conta.tipo;
+        document.getElementById('discriminacaoConta').value = conta.discriminacao;
+        document.getElementById('valorConta').value = conta.valor;
+        document.getElementById('dataEmissaoConta').value = conta.emissao;
+        document.getElementById('dataVencimentoConta').value = conta.vencimento;
+        document.getElementById('totalParcelasConta').value = conta.parcelas || 1;
+        document.getElementById('categoriaContaSelect').value = conta.categoria || '';
+        document.getElementById('salvarConta').innerHTML = '<i class="fas fa-save"></i> Atualizar Conta';
+        document.getElementById('cancelarEdicaoConta').style.display = 'inline-block';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function recriarGraficos() {
@@ -690,11 +1052,16 @@
             document.getElementById('totalReceitasMes').innerHTML = 'R$ 0,00';
             document.getElementById('totalDespesasDia').innerHTML = 'R$ 0,00';
             document.getElementById('totalDespesasMes').innerHTML = 'R$ 0,00';
+            document.getElementById('totalContasPagar').innerHTML = 'R$ 0,00';
+            document.getElementById('totalContasReceber').innerHTML = 'R$ 0,00';
             document.getElementById('categoriaSelect').innerHTML = '<option>Nenhuma igreja selecionada</option>';
             document.querySelector('#tabelaTransacoes tbody').innerHTML = '<tr><td colspan="6">Modo Administrador - Selecione uma igreja para ver dados</td></tr>';
             document.getElementById('listaCategorias').innerHTML = '<p>Modo Administrador</p>';
             document.querySelector('#ultimasTransacoes tbody').innerHTML = '<tr><td colspan="4">Modo Administrador</td></tr>';
             document.getElementById('listaFormasPagamento').innerHTML = '';
+            document.querySelector('#tabelaContas tbody').innerHTML = '<tr><td colspan="8">Modo Administrador</td></tr>';
+            document.getElementById('alertasContainer').innerHTML = '';
+            document.getElementById('alertasContasContainer').innerHTML = '';
             await renderizarListaIgrejasAdmin();
             return;
         }
@@ -706,8 +1073,9 @@
         document.getElementById('totalDespesas').innerHTML = `R$ ${totalDesp.toFixed(2)}`;
         document.getElementById('saldoTotal').innerHTML = `R$ ${(totalRec - totalDesp).toFixed(2)}`;
         
-        // Calcular totais de receitas e despesas do dia e do mês
         calcularTotaisDiariosMensais();
+        calcularTotaisContas();
+        gerarAlertasVencimento();
         
         const catSelect = document.getElementById('categoriaSelect');
         if (catSelect) {
@@ -715,6 +1083,21 @@
             categorias.forEach(c => { const opt = document.createElement('option'); opt.value = c.nome; opt.textContent = `${c.nome} (${c.tipo})`; catSelect.appendChild(opt); });
             if (catSelect.options.length > 0) catSelect.selectedIndex = 0;
         }
+        
+        // Atualizar select de categorias para contas
+        const catContaSelect = document.getElementById('categoriaContaSelect');
+        if (catContaSelect) {
+            catContaSelect.innerHTML = '<option value="">Sem categoria</option>';
+            categorias.forEach(c => { const opt = document.createElement('option'); opt.value = c.nome; opt.textContent = `${c.nome} (${c.tipo})`; catContaSelect.appendChild(opt); });
+        }
+        
+        // Atualizar select de pesquisa de categorias
+        const pesqCatSelect = document.getElementById('pesquisaCategoriaConta');
+        if (pesqCatSelect) {
+            pesqCatSelect.innerHTML = '<option value="">Todas as categorias</option>';
+            categorias.forEach(c => { const opt = document.createElement('option'); opt.value = c.nome; opt.textContent = c.nome; pesqCatSelect.appendChild(opt); });
+        }
+        
         const fpSelect = document.getElementById('formaPagamento');
         if (fpSelect) {
             fpSelect.innerHTML = '';
@@ -748,6 +1131,9 @@
             });
         }
         
+        // Renderizar contas
+        renderizarTabelaContas(contas);
+        
         const catContainer = document.getElementById('listaCategorias');
         if (catContainer) {
             catContainer.innerHTML = '<h4>📌 Categorias</h4>';
@@ -774,7 +1160,7 @@
             ultimasTbody.innerHTML = '';
             transacoes.slice(-5).reverse().forEach(t => { const row = ultimasTbody.insertRow(); row.insertCell(0).textContent = t.data; row.insertCell(1).textContent = t.descricao || t.categoria; row.insertCell(2).textContent = t.categoria; row.insertCell(3).innerHTML = `<strong>R$ ${t.valor.toFixed(2)}</strong>`; });
         }
-        document.getElementById('storageInfo').innerHTML = `<p><i class="fas fa-database"></i> <strong>Status:</strong> ${transacoes.length} transações | ${categorias.length} categorias | ${formasPagamento.length} formas de pagamento</p>`;
+        document.getElementById('storageInfo').innerHTML = `<p><i class="fas fa-database"></i> <strong>Status:</strong> ${transacoes.length} transações | ${categorias.length} categorias | ${formasPagamento.length} formas de pagamento | ${contas.length} contas</p>`;
     }
     
     function editarTransacao(transacao) {
@@ -816,17 +1202,18 @@
         container.innerHTML = '<h4>📋 Igrejas Cadastradas</h4>';
         for (const igreja of igrejas) {
             const transCount = (await carregarTransacoes(igreja.id)).length;
+            const contasCount = (await carregarContas(igreja.id)).length;
             const div = document.createElement('div'); div.className = 'categoria-item'; div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.width = '100%'; div.style.flexWrap = 'wrap';
-            div.innerHTML = `<div><strong>🏛️ ${igreja.nome}</strong><br><small>🔐 Senha: ${igreja.senha} | 📍 ${igreja.endereco || 'Sem endereço'}</small><br><small>💰 ${transCount} transações</small></div>
+            div.innerHTML = `<div><strong>🏛️ ${igreja.nome}</strong><br><small>🔐 Senha: ${igreja.senha} | 📍 ${igreja.endereco || 'Sem endereço'}</small><br><small>💰 ${transCount} transações | 📄 ${contasCount} contas</small></div>
                 <div><button onclick="editarSenhaIgreja(${igreja.id})" style="background:#3b82f6; margin-right:5px;"><i class="fas fa-key"></i> Alterar Senha</button>
                 <button onclick="excluirIgrejaAdmin(${igreja.id})" style="background:#dc2626;"><i class="fas fa-trash"></i> Excluir</button></div>`;
             container.appendChild(div);
         }
     }
     window.editarSenhaIgreja = async function(id) { const novaSenha = prompt('Digite a nova senha:'); if(!novaSenha || novaSenha.length<3) return; const igrejas = await carregarIgrejas(); const idx = igrejas.findIndex(i=>i.id===id); if(idx!==-1){ igrejas[idx].senha=novaSenha; await salvarIgrejas(igrejas); await renderizarListaIgrejasAdmin(); await carregarListaIgrejasLogin(); alert('✅ Senha alterada!'); } };
-    window.excluirIgrejaAdmin = async function(id) { const igrejas = await carregarIgrejas(); if(igrejas.length<=1) return alert('Não é possível excluir a única igreja'); if(confirm('Excluir esta igreja e TODOS os seus dados?')) { await salvarIgrejas(igrejas.filter(i=>i.id!==id)); const tx = db.transaction(['transacoes','categorias','formasPagamento'],'readwrite'); for(let store of ['transacoes','categorias','formasPagamento']){ const s = tx.objectStore(store); const idxStore = s.index('igrejaId'); idxStore.openCursor(IDBKeyRange.only(id)).onsuccess = (e) => { const c = e.target.result; if(c) { s.delete(c.primaryKey); c.continue(); } }; } await renderizarListaIgrejasAdmin(); await carregarListaIgrejasLogin(); alert('✅ Igreja excluída!'); } };
+    window.excluirIgrejaAdmin = async function(id) { const igrejas = await carregarIgrejas(); if(igrejas.length<=1) return alert('Não é possível excluir a única igreja'); if(confirm('Excluir esta igreja e TODOS os seus dados?')) { await salvarIgrejas(igrejas.filter(i=>i.id!==id)); const tx = db.transaction(['transacoes','categorias','formasPagamento','contas'],'readwrite'); for(let store of ['transacoes','categorias','formasPagamento','contas']){ const s = tx.objectStore(store); const idxStore = s.index('igrejaId'); idxStore.openCursor(IDBKeyRange.only(id)).onsuccess = (e) => { const c = e.target.result; if(c) { s.delete(c.primaryKey); c.continue(); } }; } await renderizarListaIgrejasAdmin(); await carregarListaIgrejasLogin(); alert('✅ Igreja excluída!'); } };
     
-    window.excluirCategoria = async function(idx) { if (!igrejaAtual) return; const nome = categorias[idx].nome; if (transacoes.some(t => t.categoria === nome)) alert('❌ Não pode excluir: há transações vinculadas'); else { categorias.splice(idx,1); await salvarCategorias(igrejaAtual.id, categorias); await atualizarInterface(); showToast('Categoria removida localmente.', 'success'); } };
+    window.excluirCategoria = async function(idx) { if (!igrejaAtual) return; const nome = categorias[idx].nome; if (transacoes.some(t => t.categoria === nome) || contas.some(c => c.categoria === nome)) alert('❌ Não pode excluir: há transações ou contas vinculadas'); else { categorias.splice(idx,1); await salvarCategorias(igrejaAtual.id, categorias); await atualizarInterface(); showToast('Categoria removida localmente.', 'success'); } };
     window.excluirFormaPagamento = async function(idx) { if (!igrejaAtual) return; const fp = formasPagamento[idx]; formasPagamento.splice(idx,1); await salvarFormasPagamento(igrejaAtual.id, formasPagamento.map(n=>({nome:n}))); await atualizarInterface(); showToast('Forma de pagamento removida.', 'success'); };
     
     function gerarRelatorio(mes, ano) {
@@ -845,6 +1232,12 @@
             }
         });
         
+        // Filtrar contas do período
+        const contasFiltradas = contas.filter(c => {
+            const d = new Date(c.vencimento);
+            return d.getMonth()+1 === mes && d.getFullYear() === ano;
+        });
+        
         let html = `<h4>📊 Relatório - ${mes}/${ano} - ${igrejaAtual?.nome}</h4>`;
         html += `<h5>📋 Lista de Transações</h5><table style="width:100%; border-collapse:collapse; border:1px solid #ddd;">
             <thead><tr style="background:#064e3b; color:white;"><th style="padding:10px;">Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th></tr></thead><tbody>`;
@@ -859,6 +1252,21 @@
             </tr>`; 
         });
         html+=`</tbody></table>`;
+        
+        html += `<h5>📄 Contas do Período</h5><table style="width:100%; border-collapse:collapse; border:1px solid #ddd;">
+            <thead><tr style="background:#064e3b; color:white;"><th>Tipo</th><th>Discriminação</th><th>Valor</th><th>Vencimento</th><th>Parcelas</th></tr></thead><tbody>`;
+        if(contasFiltradas.length===0) html+=`<tr><td colspan="5" style="text-align:center; padding:40px;">📭 Nenhuma conta encontrada</td></tr>`;
+        else contasFiltradas.forEach(c=>{
+            html+=`<tr>
+                <td>${c.tipo==='pagar'?'📉 Pagar':'💰 Receber'}</td>
+                <td>${c.discriminacao}</td>
+                <td>R$ ${c.valor.toFixed(2)}</td>
+                <td>${c.vencimento}</td>
+                <td>${c.parcelas || 1}</td>
+            </tr>`;
+        });
+        html+=`</tbody></table>`;
+        
         html += `<h5>📈 Receitas por Categoria</h5><table style="width:100%; border-collapse:collapse; border:1px solid #ddd;">
             <thead><tr style="background:#10b981; color:white;"><th>Categoria</th><th>Valor</th></tr></thead><tbody>`;
         if (Object.keys(receitasPorCat).length === 0) html+=`<tr><td colspan="2">Nenhuma receita no período</td></tr>`;
@@ -883,15 +1291,18 @@
         const todasTransacoes = [];
         const todasCategorias = [];
         const todasFormas = [];
+        const todasContas = [];
         for (const igreja of igrejas) {
             const trans = await carregarTransacoes(igreja.id);
             const cats = await carregarCategorias(igreja.id);
             const formas = await carregarFormasPagamento(igreja.id);
+            const contasIgreja = await carregarContas(igreja.id);
             todasTransacoes.push(...trans);
             todasCategorias.push(...cats);
             todasFormas.push(...formas.map(f => ({ ...f, igrejaId: igreja.id })));
+            todasContas.push(...contasIgreja);
         }
-        const backup = { igrejas, transacoes: todasTransacoes, categorias: todasCategorias, formasPagamento: todasFormas, data: new Date().toISOString(), versao: '4.0' };
+        const backup = { igrejas, transacoes: todasTransacoes, categorias: todasCategorias, formasPagamento: todasFormas, contas: todasContas, data: new Date().toISOString(), versao: '5.0' };
         const blob = new Blob([JSON.stringify(backup)], { type: 'application/json' });
         const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `backup_completo_${new Date().toISOString().slice(0,10)}.json`; link.click(); URL.revokeObjectURL(link.href); showToast('✅ Backup completo gerado!', 'success');
     }
@@ -901,16 +1312,18 @@
             try {
                 const data = JSON.parse(e.target.result);
                 if (!data.igrejas) throw new Error('Formato inválido');
-                const tx = db.transaction(['igrejas','transacoes','categorias','formasPagamento'], 'readwrite');
+                const tx = db.transaction(['igrejas','transacoes','categorias','formasPagamento','contas'], 'readwrite');
                 tx.objectStore('igrejas').clear();
                 tx.objectStore('transacoes').clear();
                 tx.objectStore('categorias').clear();
                 tx.objectStore('formasPagamento').clear();
+                tx.objectStore('contas').clear();
                 await tx.done;
                 for (const igreja of data.igrejas) await salvarIgrejas(data.igrejas);
                 for (const trans of data.transacoes || []) { const store = db.transaction(['transacoes'],'readwrite').objectStore('transacoes'); store.put(trans); }
                 for (const cat of data.categorias || []) { const store = db.transaction(['categorias'],'readwrite').objectStore('categorias'); store.put(cat); }
                 for (const fp of data.formasPagamento || []) { const store = db.transaction(['formasPagamento'],'readwrite').objectStore('formasPagamento'); store.put(fp); }
+                for (const conta of data.contas || []) { const store = db.transaction(['contas'],'readwrite').objectStore('contas'); store.put(conta); }
                 await carregarListaIgrejasLogin();
                 showToast('✅ Backup restaurado! Faça login novamente.', 'success');
                 logout();
@@ -919,7 +1332,7 @@
         reader.readAsText(file);
     }
     
-    function logout() { usuarioLogado = null; igrejaAtual = null; transacoes = []; categorias = []; document.getElementById('appContent').style.display = 'none'; document.getElementById('loginOverlay').style.display = 'flex'; document.getElementById('loginSenha').value = ''; carregarListaIgrejasLogin(); editandoId = null; }
+    function logout() { usuarioLogado = null; igrejaAtual = null; transacoes = []; categorias = []; contas = []; document.getElementById('appContent').style.display = 'none'; document.getElementById('loginOverlay').style.display = 'flex'; document.getElementById('loginSenha').value = ''; carregarListaIgrejasLogin(); editandoId = null; editandoContaId = null; }
     
     function initTabs() {
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -931,6 +1344,10 @@
                 const targetPanel = document.getElementById(targetId); if (targetPanel) targetPanel.classList.add('active-panel');
                 if (targetId === 'igrejas' && usuarioLogado?.isMaster) renderizarListaIgrejasAdmin();
                 if (targetId === 'dashboard' && !usuarioLogado?.isMaster && igrejaAtual) setTimeout(() => recriarGraficos(), 50);
+                if (targetId === 'contas' && !usuarioLogado?.isMaster && igrejaAtual) {
+                    gerarAlertasVencimento();
+                    renderizarTabelaContas(contas);
+                }
             });
         });
     }
@@ -943,6 +1360,7 @@
         transacoes = await carregarTransacoes(igrejaAtual.id);
         categorias = await carregarCategorias(igrejaAtual.id);
         formasPagamento = await carregarFormasPagamento(igrejaAtual.id);
+        contas = await carregarContas(igrejaAtual.id);
         await atualizarInterface();
         hideLoading();
         showToast('Informações recarregadas do banco local.', 'success');
@@ -971,12 +1389,14 @@
                                 <th>Receitas</th>
                                 <th>Despesas</th>
                                 <th>Saldo</th>
+                                <th>Contas Pagar</th>
+                                <th>Contas Receber</th>
                             </tr>
                         </thead>
                         <tbody>`;
-        let totalR=0,totalD=0;
+        let totalR=0,totalD=0,totalCP=0,totalCR=0;
         for(let i=0;i<12;i++){
-            let rec=0,desp=0;
+            let rec=0,desp=0,cp=0,cr=0;
             transacoes.forEach(t=>{ 
                 const d=new Date(t.data); 
                 if(d.getFullYear()==ano && d.getMonth()==i){ 
@@ -984,13 +1404,24 @@
                     else desp+=t.valor; 
                 } 
             });
+            contas.forEach(c=>{
+                const d=new Date(c.vencimento);
+                if(d.getFullYear()==ano && d.getMonth()==i){
+                    if(c.tipo==='pagar') cp+=c.valor;
+                    else cr+=c.valor;
+                }
+            });
             totalR+=rec;
             totalD+=desp;
+            totalCP+=cp;
+            totalCR+=cr;
             html+=`<tr>
                         <td style="padding:8px;">${meses[i]}</td>
                         <td>R$ ${rec.toFixed(2)}</td>
                         <td>R$ ${desp.toFixed(2)}</td>
                         <td style="color:${rec-desp>=0?'green':'red'}">R$ ${(rec-desp).toFixed(2)}</td>
+                        <td style="color:#dc2626;">R$ ${cp.toFixed(2)}</td>
+                        <td style="color:#10b981;">R$ ${cr.toFixed(2)}</td>
                     </tr>`;
         }
         html+=`<tr style="font-weight:bold; background:#f3f4f6;">
@@ -998,6 +1429,8 @@
                     <td>R$ ${totalR.toFixed(2)}</td>
                     <td>R$ ${totalD.toFixed(2)}</td>
                     <td>R$ ${(totalR-totalD).toFixed(2)}</td>
+                    <td>R$ ${totalCP.toFixed(2)}</td>
+                    <td>R$ ${totalCR.toFixed(2)}</td>
                 </tr>
             </tbody>
         </table>`;
@@ -1137,6 +1570,7 @@
             } else { await carregarDadosIgreja(); }
             document.querySelector('.tab-btn[data-tab="dashboard"]').click();
             limparFormularioLancamento();
+            limparFormularioConta();
             updateConnectionStatus();
         } else { document.getElementById('loginError').innerHTML = result.mensagem; }
     };
@@ -1165,6 +1599,63 @@
     document.getElementById('btnRelatorioAvancado').onclick = relatorioAvancadoComImpressao;
     document.getElementById('alterarSenhaMasterBtn').onclick = async () => { if(!usuarioLogado?.isMaster) return alert('Apenas master'); const nova = document.getElementById('novaSenhaMaster').value.trim(); if(!nova || nova.length<4) return alert('Senha deve ter pelo menos 4 caracteres'); MASTER_SENHA = nova; await salvarConfigMaster(nova); alert('✅ Senha master alterada! Use a nova senha no próximo login.'); document.getElementById('novaSenhaMaster').value = ''; };
     
+    // Eventos de Contas
+    document.getElementById('salvarConta').onclick = async () => {
+        if (!igrejaAtual) return alert('Selecione uma igreja');
+        const tipo = document.getElementById('tipoConta').value;
+        const discriminacao = document.getElementById('discriminacaoConta').value.trim();
+        const valor = parseFloat(document.getElementById('valorConta').value);
+        const emissao = document.getElementById('dataEmissaoConta').value;
+        const vencimento = document.getElementById('dataVencimentoConta').value;
+        const parcelas = parseInt(document.getElementById('totalParcelasConta').value) || 1;
+        const categoria = document.getElementById('categoriaContaSelect').value || '';
+
+        if (!discriminacao) return alert('Digite a discriminação da conta');
+        if (isNaN(valor) || valor <= 0) return alert('Digite um valor válido');
+        if (!emissao) return alert('Selecione a data de emissão');
+        if (!vencimento) return alert('Selecione a data de vencimento');
+
+        const novaConta = {
+            id: editandoContaId || Date.now(),
+            igrejaId: igrejaAtual.id,
+            tipo,
+            discriminacao,
+            valor,
+            emissao,
+            vencimento,
+            parcelas,
+            categoria
+        };
+
+        if (editandoContaId) {
+            contas = contas.map(c => c.id === editandoContaId ? novaConta : c);
+            editandoContaId = null;
+        } else {
+            contas.push(novaConta);
+        }
+
+        await salvarContas(igrejaAtual.id, contas);
+        await atualizarInterface();
+        limparFormularioConta();
+        showToast('✅ Conta salva com sucesso!', 'success');
+    };
+
+    document.getElementById('cancelarEdicaoConta').onclick = () => { limparFormularioConta(); };
+
+    // Eventos de pesquisa
+    document.getElementById('btnPesquisarConta').onclick = pesquisarContas;
+    document.getElementById('btnLimparPesquisaConta').onclick = () => {
+        document.getElementById('pesquisaConta').value = '';
+        document.getElementById('pesquisaDataConta').value = '';
+        document.getElementById('pesquisaCategoriaConta').value = '';
+        renderizarTabelaContas(contas);
+    };
+
+    // Enter para pesquisar
+    document.getElementById('pesquisaConta').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') pesquisarContas();
+    });
+
     document.getElementById('recarregarDadosBtn').onclick = recarregarDados;
     document.getElementById('importarBackupRapidoBtn').onclick = importarBackupRapido;
     

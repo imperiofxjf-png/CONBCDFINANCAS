@@ -464,11 +464,11 @@
 
 <script>
     // ============================================
-    // CÓDIGO COMPLETO DO APP (FUNCIONALIDADES EXISTENTES + OFFLINE + RESPONSIVO + TOTAIS DIA/MÊS + CONTAS + PESQUISA)
+    // CÓDIGO COMPLETO DO APP (COM FUNCIONALIDADE DE CONFIRMAR PAGAMENTO/RECEBIMENTO)
     // ============================================
     
     const DB_NAME = 'CONBCD_Multi_Igrejas_DB';
-    const DB_VERSION = 5;
+    const DB_VERSION = 6; // Incrementado para nova estrutura
     let db = null;
     let todasIgrejas = [];
     let igrejaAtual = null;
@@ -557,7 +557,6 @@
                 if (!db.objectStoreNames.contains('config')) {
                     db.createObjectStore('config', { keyPath: 'chave' });
                 }
-                // Nova store para contas
                 if (!db.objectStoreNames.contains('contas')) {
                     const contasStore = db.createObjectStore('contas', { keyPath: 'id' });
                     contasStore.createIndex('igrejaId', 'igrejaId');
@@ -666,35 +665,27 @@
     }
     function hideLoading() { const loading = document.querySelector('.loading-overlay'); if (loading) loading.style.display = 'none'; }
     
-    // --- Função para calcular totais do dia (CORRIGIDA) ---
+    // --- Função para calcular totais do dia ---
     function calcularTotaisDia() {
-        // Verifica se há igreja selecionada e transações
         if (!igrejaAtual || transacoes.length === 0) {
             document.getElementById('totalReceitasDia').innerHTML = 'R$ 0,00';
             document.getElementById('totalDespesasDia').innerHTML = 'R$ 0,00';
             return;
         }
 
-        // Obtém a data atual
         const hoje = new Date();
         const diaAtual = hoje.getDate().toString().padStart(2, '0');
         const mesAtual = (hoje.getMonth() + 1).toString().padStart(2, '0');
         const anoAtual = hoje.getFullYear();
-        
-        // Formato da data para comparação: YYYY-MM-DD
         const dataHojeStr = `${anoAtual}-${mesAtual}-${diaAtual}`;
 
         let totalReceitasDia = 0;
         let totalDespesasDia = 0;
 
         transacoes.forEach(t => {
-            // A data da transação já está no formato YYYY-MM-DD
             if (t.data === dataHojeStr) {
-                if (t.tipo === 'receita') {
-                    totalReceitasDia += t.valor;
-                } else if (t.tipo === 'despesa') {
-                    totalDespesasDia += t.valor;
-                }
+                if (t.tipo === 'receita') totalReceitasDia += t.valor;
+                else if (t.tipo === 'despesa') totalDespesasDia += t.valor;
             }
         });
 
@@ -713,23 +704,16 @@
         const hoje = new Date();
         const mesAtual = (hoje.getMonth() + 1).toString().padStart(2, '0');
         const anoAtual = hoje.getFullYear();
-        
-        // Formato para comparação: YYYY-MM
         const mesAnoStr = `${anoAtual}-${mesAtual}`;
 
         let totalReceitasMes = 0;
         let totalDespesasMes = 0;
 
         transacoes.forEach(t => {
-            // Extrai apenas ano-mês da data da transação
-            const dataTransacao = t.data.substring(0, 7); // YYYY-MM
-            
+            const dataTransacao = t.data.substring(0, 7);
             if (dataTransacao === mesAnoStr) {
-                if (t.tipo === 'receita') {
-                    totalReceitasMes += t.valor;
-                } else if (t.tipo === 'despesa') {
-                    totalDespesasMes += t.valor;
-                }
+                if (t.tipo === 'receita') totalReceitasMes += t.valor;
+                else if (t.tipo === 'despesa') totalDespesasMes += t.valor;
             }
         });
 
@@ -749,15 +733,41 @@
         let totalReceber = 0;
 
         contas.forEach(c => {
-            if (c.tipo === 'pagar') totalPagar += c.valor;
-            else if (c.tipo === 'receber') totalReceber += c.valor;
+            // Só considera contas NÃO confirmadas para os totais pendentes
+            if (!c.confirmado) {
+                if (c.tipo === 'pagar') totalPagar += c.valor;
+                else if (c.tipo === 'receber') totalReceber += c.valor;
+            }
         });
 
         document.getElementById('totalContasPagar').innerHTML = `R$ ${totalPagar.toFixed(2)}`;
         document.getElementById('totalContasReceber').innerHTML = `R$ ${totalReceber.toFixed(2)}`;
     }
 
-    // --- Função para verificar vencimentos e gerar alertas ---
+    // --- Função para confirmar pagamento/recebimento de conta ---
+    async function confirmarConta(id) {
+        if (!igrejaAtual) return alert('Selecione uma igreja');
+        
+        const conta = contas.find(c => c.id === id);
+        if (!conta) return alert('Conta não encontrada');
+        
+        if (conta.confirmado) {
+            alert('Esta conta já foi confirmada!');
+            return;
+        }
+        
+        const tipoAcao = conta.tipo === 'pagar' ? 'paga' : 'recebida';
+        if (!confirm(`Confirmar que esta conta foi ${tipoAcao}?\n\nDiscriminação: ${conta.discriminacao}\nValor: R$ ${conta.valor.toFixed(2)}`)) return;
+        
+        conta.confirmado = true;
+        conta.dataConfirmacao = new Date().toISOString().slice(0, 10);
+        
+        await salvarContas(igrejaAtual.id, contas);
+        await atualizarInterface();
+        showToast(`✅ Conta confirmada como ${tipoAcao}!`, 'success');
+    }
+
+    // --- Função para verificar vencimentos e gerar alertas (ignorando contas confirmadas) ---
     function gerarAlertasVencimento() {
         const container = document.getElementById('alertasContainer');
         const containerContas = document.getElementById('alertasContasContainer');
@@ -770,28 +780,28 @@
         let alertas = [];
         let alertasContas = [];
 
-        // Alertas de contas
-        contas.forEach(c => {
+        // Filtra apenas contas NÃO confirmadas para os alertas
+        const contasPendentes = contas.filter(c => !c.confirmado);
+
+        // Alertas de contas pendentes
+        contasPendentes.forEach(c => {
             const vencimento = new Date(c.vencimento);
             vencimento.setHours(0, 0, 0, 0);
             const diffDias = Math.floor((vencimento - hoje) / (1000 * 60 * 60 * 24));
             
             if (diffDias < 0) {
-                // Vencida
                 alertasContas.push({
                     ...c,
                     status: 'vencido',
                     mensagem: `🔴 Conta ${c.tipo === 'pagar' ? 'a Pagar' : 'a Receber'} "${c.discriminacao}" venceu há ${Math.abs(diffDias)} dia(s)! Valor: R$ ${c.valor.toFixed(2)}`
                 });
             } else if (diffDias === 0) {
-                // Vence hoje
                 alertasContas.push({
                     ...c,
                     status: 'hoje',
                     mensagem: `🟡 Conta ${c.tipo === 'pagar' ? 'a Pagar' : 'a Receber'} "${c.discriminacao}" vence HOJE! Valor: R$ ${c.valor.toFixed(2)}`
                 });
             } else if (diffDias <= 3) {
-                // Vence nos próximos 3 dias
                 alertasContas.push({
                     ...c,
                     status: 'proximo',
@@ -810,7 +820,7 @@
             html += '</div>';
             container.innerHTML = html;
         } else {
-            container.innerHTML = '<div class="alerta-vencimento" style="background:#f0fdf4; border-left-color:#10b981;">✅ Nenhuma conta próxima do vencimento!</div>';
+            container.innerHTML = '<div class="alerta-vencimento" style="background:#f0fdf4; border-left-color:#10b981;">✅ Nenhuma conta pendente próxima do vencimento!</div>';
         }
 
         // Mostrar alertas na aba de contas
@@ -824,7 +834,7 @@
                 html += '</div>';
                 containerContas.innerHTML = html;
             } else {
-                containerContas.innerHTML = '<div class="alerta-vencimento" style="background:#f0fdf4; border-left-color:#10b981;">✅ Nenhuma conta próxima do vencimento!</div>';
+                containerContas.innerHTML = '<div class="alerta-vencimento" style="background:#f0fdf4; border-left-color:#10b981;">✅ Nenhuma conta pendente próxima do vencimento!</div>';
             }
         }
     }
@@ -852,7 +862,7 @@
         renderizarTabelaContas(filtradas);
     }
 
-    // --- Função para renderizar tabela de contas ---
+    // --- Função para renderizar tabela de contas (COM CONFIRMAÇÃO) ---
     function renderizarTabelaContas(lista) {
         const tbody = document.querySelector('#tabelaContas tbody');
         if (!tbody) return;
@@ -882,44 +892,72 @@
             // Parcelas
             row.insertCell(5).textContent = c.parcelas || 1;
             
-            // Status
-            const vencimento = new Date(c.vencimento);
-            vencimento.setHours(0, 0, 0, 0);
-            const diffDias = Math.floor((vencimento - hoje) / (1000 * 60 * 60 * 24));
+            // Status (com verificação de confirmação)
             let statusHtml = '';
-            if (diffDias < 0) {
-                statusHtml = `<span class="badge badge-vencido">🔴 Vencida há ${Math.abs(diffDias)}d</span>`;
-            } else if (diffDias === 0) {
-                statusHtml = `<span class="badge badge-hoje">🟡 Vence hoje</span>`;
-            } else if (diffDias <= 3) {
-                statusHtml = `<span class="badge badge-hoje">🟡 Em ${diffDias}d</span>`;
+            if (c.confirmado) {
+                // Conta já foi paga/recebida
+                statusHtml = `<span class="badge" style="background:#10b981; color:white;">
+                    <i class="fas fa-check-circle"></i> ${c.tipo === 'pagar' ? 'Paga' : 'Recebida'} 
+                    ${c.dataConfirmacao ? `em ${c.dataConfirmacao}` : ''}
+                </span>`;
             } else {
-                statusHtml = `<span class="badge badge-em-dia">✅ Em dia</span>`;
+                // Verifica vencimento
+                const vencimento = new Date(c.vencimento);
+                vencimento.setHours(0, 0, 0, 0);
+                const diffDias = Math.floor((vencimento - hoje) / (1000 * 60 * 60 * 24));
+                if (diffDias < 0) {
+                    statusHtml = `<span class="badge badge-vencido">🔴 Vencida há ${Math.abs(diffDias)}d</span>`;
+                } else if (diffDias === 0) {
+                    statusHtml = `<span class="badge badge-hoje">🟡 Vence hoje</span>`;
+                } else if (diffDias <= 3) {
+                    statusHtml = `<span class="badge badge-hoje">🟡 Em ${diffDias}d</span>`;
+                } else {
+                    statusHtml = `<span class="badge badge-em-dia">✅ Em dia</span>`;
+                }
             }
             row.insertCell(6).innerHTML = statusHtml;
             
-            // Ações
+            // Ações (com botão Confirmar e condição para ocultar editar/excluir)
             const acoes = row.insertCell(7);
-            const btnEdit = document.createElement('button');
-            btnEdit.innerHTML = '<i class="fas fa-edit"></i>';
-            btnEdit.className = 'edit-btn small-btn';
-            btnEdit.onclick = () => editarConta(c);
             
-            const btnDel = document.createElement('button');
-            btnDel.innerHTML = '<i class="fas fa-trash"></i>';
-            btnDel.style.background = '#dc2626';
-            btnDel.className = 'small-btn';
-            btnDel.onclick = async () => { 
-                if(confirm('Excluir esta conta?')) { 
-                    contas = contas.filter(x => x.id !== c.id); 
-                    await salvarContas(igrejaAtual.id, contas); 
-                    await atualizarInterface(); 
-                    showToast('Conta excluída!', 'success'); 
-                } 
-            };
-            
-            acoes.appendChild(btnEdit);
-            acoes.appendChild(btnDel);
+            if (c.confirmado) {
+                // Conta confirmada: mostra apenas o status e não permite edição/exclusão
+                acoes.innerHTML = `<span style="color:#10b981; font-weight:bold;">
+                    <i class="fas fa-check-circle"></i> Confirmado
+                </span>`;
+            } else {
+                // Botão Confirmar
+                const btnConfirmar = document.createElement('button');
+                btnConfirmar.innerHTML = `<i class="fas fa-check"></i> Confirmar`;
+                btnConfirmar.style.background = '#10b981';
+                btnConfirmar.className = 'small-btn';
+                btnConfirmar.style.marginRight = '5px';
+                btnConfirmar.onclick = () => confirmarConta(c.id);
+                
+                // Botão Editar
+                const btnEdit = document.createElement('button');
+                btnEdit.innerHTML = '<i class="fas fa-edit"></i>';
+                btnEdit.className = 'edit-btn small-btn';
+                btnEdit.onclick = () => editarConta(c);
+                
+                // Botão Excluir
+                const btnDel = document.createElement('button');
+                btnDel.innerHTML = '<i class="fas fa-trash"></i>';
+                btnDel.style.background = '#dc2626';
+                btnDel.className = 'small-btn';
+                btnDel.onclick = async () => { 
+                    if(confirm('Excluir esta conta?')) { 
+                        contas = contas.filter(x => x.id !== c.id); 
+                        await salvarContas(igrejaAtual.id, contas); 
+                        await atualizarInterface(); 
+                        showToast('Conta excluída!', 'success'); 
+                    } 
+                };
+                
+                acoes.appendChild(btnConfirmar);
+                acoes.appendChild(btnEdit);
+                acoes.appendChild(btnDel);
+            }
         });
     }
 
@@ -1013,6 +1051,10 @@
     }
 
     function editarConta(conta) {
+        if (conta.confirmado) {
+            alert('Esta conta já foi confirmada e não pode ser editada.');
+            return;
+        }
         editandoContaId = conta.id;
         document.getElementById('tipoConta').value = conta.tipo;
         document.getElementById('discriminacaoConta').value = conta.discriminacao;
@@ -1160,7 +1202,7 @@
             });
         }
         
-        // Renderizar contas
+        // Renderizar contas com a nova funcionalidade
         renderizarTabelaContas(contas);
         
         const catContainer = document.getElementById('listaCategorias');
@@ -1242,7 +1284,7 @@
     window.editarSenhaIgreja = async function(id) { const novaSenha = prompt('Digite a nova senha:'); if(!novaSenha || novaSenha.length<3) return; const igrejas = await carregarIgrejas(); const idx = igrejas.findIndex(i=>i.id===id); if(idx!==-1){ igrejas[idx].senha=novaSenha; await salvarIgrejas(igrejas); await renderizarListaIgrejasAdmin(); await carregarListaIgrejasLogin(); alert('✅ Senha alterada!'); } };
     window.excluirIgrejaAdmin = async function(id) { const igrejas = await carregarIgrejas(); if(igrejas.length<=1) return alert('Não é possível excluir a única igreja'); if(confirm('Excluir esta igreja e TODOS os seus dados?')) { await salvarIgrejas(igrejas.filter(i=>i.id!==id)); const tx = db.transaction(['transacoes','categorias','formasPagamento','contas'],'readwrite'); for(let store of ['transacoes','categorias','formasPagamento','contas']){ const s = tx.objectStore(store); const idxStore = s.index('igrejaId'); idxStore.openCursor(IDBKeyRange.only(id)).onsuccess = (e) => { const c = e.target.result; if(c) { s.delete(c.primaryKey); c.continue(); } }; } await renderizarListaIgrejasAdmin(); await carregarListaIgrejasLogin(); alert('✅ Igreja excluída!'); } };
     
-    window.excluirCategoria = async function(idx) { if (!igrejaAtual) return; const nome = categorias[idx].nome; if (transacoes.some(t => t.categoria === nome) || contas.some(c => c.categoria === nome)) alert('❌ Não pode excluir: há transações ou contas vinculadas'); else { categorias.splice(idx,1); await salvarCategorias(igrejaAtual.id, categorias); await atualizarInterface(); showToast('Categoria removida localmente.', 'success'); } };
+    window.excluirCategoria = async function(idx) { if (!igrejaAtual) return; const nome = categorias[idx].nome; if (transacoes.some(t => t.categoria === nome) || contas.some(c => c.categoria === nome && !c.confirmado)) alert('❌ Não pode excluir: há transações ou contas vinculadas'); else { categorias.splice(idx,1); await salvarCategorias(igrejaAtual.id, categorias); await atualizarInterface(); showToast('Categoria removida localmente.', 'success'); } };
     window.excluirFormaPagamento = async function(idx) { if (!igrejaAtual) return; const fp = formasPagamento[idx]; formasPagamento.splice(idx,1); await salvarFormasPagamento(igrejaAtual.id, formasPagamento.map(n=>({nome:n}))); await atualizarInterface(); showToast('Forma de pagamento removida.', 'success'); };
     
     function gerarRelatorio(mes, ano) {
@@ -1261,7 +1303,7 @@
             }
         });
         
-        // Filtrar contas do período
+        // Filtrar contas do período (todas, inclusive as confirmadas)
         const contasFiltradas = contas.filter(c => {
             const d = new Date(c.vencimento);
             return d.getMonth()+1 === mes && d.getFullYear() === ano;
@@ -1283,15 +1325,17 @@
         html+=`</tbody></table>`;
         
         html += `<h5>📄 Contas do Período</h5><table style="width:100%; border-collapse:collapse; border:1px solid #ddd;">
-            <thead><tr style="background:#064e3b; color:white;"><th>Tipo</th><th>Discriminação</th><th>Valor</th><th>Vencimento</th><th>Parcelas</th></tr></thead><tbody>`;
-        if(contasFiltradas.length===0) html+=`<tr><td colspan="5" style="text-align:center; padding:40px;">📭 Nenhuma conta encontrada</td></tr>`;
+            <thead><tr style="background:#064e3b; color:white;"><th>Tipo</th><th>Discriminação</th><th>Valor</th><th>Vencimento</th><th>Parcelas</th><th>Status</th></tr></thead><tbody>`;
+        if(contasFiltradas.length===0) html+=`<tr><td colspan="6" style="text-align:center; padding:40px;">📭 Nenhuma conta encontrada</td></tr>`;
         else contasFiltradas.forEach(c=>{
+            const statusConta = c.confirmado ? (c.tipo === 'pagar' ? '✅ Paga' : '✅ Recebida') : '⏳ Pendente';
             html+=`<tr>
                 <td>${c.tipo==='pagar'?'📉 Pagar':'💰 Receber'}</td>
                 <td>${c.discriminacao}</td>
                 <td>R$ ${c.valor.toFixed(2)}</td>
                 <td>${c.vencimento}</td>
                 <td>${c.parcelas || 1}</td>
+                <td>${statusConta}</td>
             </tr>`;
         });
         html+=`</tbody></table>`;
@@ -1331,7 +1375,7 @@
             todasFormas.push(...formas.map(f => ({ ...f, igrejaId: igreja.id })));
             todasContas.push(...contasIgreja);
         }
-        const backup = { igrejas, transacoes: todasTransacoes, categorias: todasCategorias, formasPagamento: todasFormas, contas: todasContas, data: new Date().toISOString(), versao: '5.0' };
+        const backup = { igrejas, transacoes: todasTransacoes, categorias: todasCategorias, formasPagamento: todasFormas, contas: todasContas, data: new Date().toISOString(), versao: '6.0' };
         const blob = new Blob([JSON.stringify(backup)], { type: 'application/json' });
         const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `backup_completo_${new Date().toISOString().slice(0,10)}.json`; link.click(); URL.revokeObjectURL(link.href); showToast('✅ Backup completo gerado!', 'success');
     }
@@ -1418,8 +1462,8 @@
                                 <th>Receitas</th>
                                 <th>Despesas</th>
                                 <th>Saldo</th>
-                                <th>Contas Pagar</th>
-                                <th>Contas Receber</th>
+                                <th>Contas Pagar (Pendentes)</th>
+                                <th>Contas Receber (Pendentes)</th>
                             </tr>
                         </thead>
                         <tbody>`;
@@ -1433,11 +1477,14 @@
                     else desp+=t.valor; 
                 } 
             });
+            // Só contas NÃO confirmadas para totais pendentes
             contas.forEach(c=>{
-                const d=new Date(c.vencimento);
-                if(d.getFullYear()==ano && d.getMonth()==i){
-                    if(c.tipo==='pagar') cp+=c.valor;
-                    else cr+=c.valor;
+                if (!c.confirmado) {
+                    const d=new Date(c.vencimento);
+                    if(d.getFullYear()==ano && d.getMonth()==i){
+                        if(c.tipo==='pagar') cp+=c.valor;
+                        else cr+=c.valor;
+                    }
                 }
             });
             totalR+=rec;
@@ -1653,10 +1700,18 @@
             emissao,
             vencimento,
             parcelas,
-            categoria
+            categoria,
+            confirmado: false,
+            dataConfirmacao: null
         };
 
         if (editandoContaId) {
+            // Mantém o status de confirmação se já existir
+            const contaExistente = contas.find(c => c.id === editandoContaId);
+            if (contaExistente && contaExistente.confirmado) {
+                alert('Não é possível editar uma conta já confirmada.');
+                return;
+            }
             contas = contas.map(c => c.id === editandoContaId ? novaConta : c);
             editandoContaId = null;
         } else {
